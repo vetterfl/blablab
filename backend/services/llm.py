@@ -8,7 +8,7 @@ async def refine_text(transcript: str, system_prompt: str) -> str:
     headers = {
         "Authorization": f"Bearer {settings.openrouter_api_key}",
         "HTTP-Referer": "http://localhost",
-        "X-Title": "Dictator App",
+        "X-Title": "BlabLab",
     }
     payload = {
         "model": settings.openrouter_model,

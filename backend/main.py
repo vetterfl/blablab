@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from routers import transcribe, refine
 from config import load_presets
 
-app = FastAPI(title="Dictator")
+app = FastAPI(title="BlabLab")
 
 app.include_router(transcribe.router, prefix="/api")
 app.include_router(refine.router, prefix="/api")
