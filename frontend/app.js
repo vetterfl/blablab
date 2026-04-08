@@ -11,6 +11,9 @@
   const refinedEl = document.getElementById("refined");
   const refinedSection = document.getElementById("refined-section");
   const presetContainer = document.getElementById("preset-buttons");
+  const recordRing = document.getElementById("record-ring");
+  const waveform = document.getElementById("waveform");
+  const recordIcon = document.getElementById("record-icon");
 
   // ── Preset loading ──────────────────────────────────────────────────────────
 
@@ -81,6 +84,9 @@
 
     btnRecord.disabled = true;
     btnRecord.classList.add("recording");
+    recordRing.classList.add("active");
+    waveform.classList.add("active");
+    recordIcon.textContent = "■";
     btnStop.disabled = false;
     setPresetsEnabled(false);
     refinedSection.hidden = true;
@@ -95,6 +101,9 @@
     btnStop.disabled = true;
     btnRecord.disabled = false;
     btnRecord.classList.remove("recording");
+    recordRing.classList.remove("active");
+    waveform.classList.remove("active");
+    recordIcon.textContent = "●";
     setStatus("Transcribing…", "active");
   }
 
@@ -115,7 +124,7 @@
 
       transcriptEl.value = data.transcript;
       setPresetsEnabled(true);
-      setStatus("Transcription complete. Edit if needed, then pick a preset.");
+      setStatus("Transcription complete. Edit if needed, then pick a preset.", "success");
     } catch (err) {
       setStatus(`Transcription failed: ${err.message}`, "error");
     }
@@ -149,7 +158,7 @@
 
       refinedEl.value = data.refined;
       refinedSection.hidden = false;
-      setStatus("Done.");
+      setStatus("Done.", "success");
     } catch (err) {
       setStatus(`Refinement failed: ${err.message}`, "error");
     } finally {
@@ -164,9 +173,9 @@
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
-      const original = btnCopy.textContent;
-      btnCopy.textContent = "Copied!";
-      setTimeout(() => (btnCopy.textContent = original), 1500);
+      const original = btnCopy.innerHTML;
+      btnCopy.innerHTML = "✓ Copied!";
+      setTimeout(() => (btnCopy.innerHTML = original), 1500);
     } catch {
       // Fallback for browsers without clipboard API
       refinedEl.select();
@@ -178,7 +187,7 @@
 
   function setStatus(msg, type = "") {
     statusEl.textContent = msg;
-    statusEl.className = "status" + (type ? ` ${type}` : "");
+    statusEl.className = "status-text" + (type ? ` ${type}` : "");
   }
 
   // ── Init ─────────────────────────────────────────────────────────────────────

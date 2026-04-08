@@ -4,42 +4,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BlabLab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>BlabLab</h1>
-
-    <section class="record-section">
-      <div class="controls">
-        <button id="btn-record" class="btn btn-record">Record</button>
-        <button id="btn-stop" class="btn btn-stop" disabled>Stop</button>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🎙</span>
+        <span class="logo-text">BlabLab</span>
       </div>
-      <p id="status" class="status">Ready</p>
+      <p class="tagline">Speak. Transcribe. Refine.</p>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Record -->
+    <section class="card record-section">
+      <div class="card-header">
+        <h2 class="card-title">Record Audio</h2>
+        <p class="card-subtitle">Click record, speak naturally, then stop when done.</p>
+      </div>
+      <div class="record-controls">
+        <div class="record-btn-wrap">
+          <div class="record-ring" id="record-ring"></div>
+          <button id="btn-record" class="btn-record-main" aria-label="Start recording">
+            <span class="record-icon" id="record-icon">&#9679;</span>
+          </button>
+        </div>
+        <div class="record-info">
+          <p id="status" class="status-text">Ready to record</p>
+          <div class="waveform" id="waveform">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <button id="btn-stop" class="btn btn-stop" disabled>
+            &#9632; Stop Recording
+          </button>
+        </div>
+      </div>
     </section>
 
-    <section class="transcript-section">
-      <label for="transcript">Transcript</label>
+    <!-- Transcript -->
+    <section class="card transcript-section">
+      <div class="card-header">
+        <h2 class="card-title">Transcript</h2>
+        <p class="card-subtitle">Edit the text below if needed before applying a preset.</p>
+      </div>
       <textarea
         id="transcript"
-        placeholder="Your dictation will appear here. You can edit it before refining."
-        rows="6"
+        class="fancy-textarea"
+        placeholder="Your transcription will appear here. You can edit it before refining…"
+        rows="10"
       ></textarea>
     </section>
 
-    <section class="presets-section">
-      <p class="section-label">Refine with</p>
+    <!-- Presets -->
+    <section class="card presets-section">
+      <div class="card-header">
+        <h2 class="card-title">Refine with AI</h2>
+        <p class="card-subtitle">Choose a style to reformat your transcript instantly.</p>
+      </div>
       <div id="preset-buttons" class="preset-buttons">
         <span class="loading-presets">Loading presets…</span>
       </div>
     </section>
 
-    <section class="refined-section" id="refined-section" hidden>
-      <label for="refined">Refined Output</label>
-      <textarea id="refined" readonly rows="6"></textarea>
-      <button id="btn-copy" class="btn btn-copy">Copy to Clipboard</button>
+    <!-- Refined output -->
+    <section class="card refined-section" id="refined-section" hidden>
+      <div class="card-header">
+        <h2 class="card-title">Refined Output</h2>
+        <p class="card-subtitle">Your AI-polished text is ready.</p>
+      </div>
+      <textarea id="refined" class="fancy-textarea fancy-textarea--output" readonly rows="10"></textarea>
+      <div class="copy-bar">
+        <button id="btn-copy" class="btn btn-copy">
+          <span id="copy-icon">&#10697;</span> Copy to Clipboard
+        </button>
+      </div>
     </section>
-  </div>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>BlabLab &mdash; powered by Whisper &amp; OpenRouter</p>
+  </footer>
 
   <script src="app.js"></script>
 </body>

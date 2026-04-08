@@ -3,7 +3,7 @@ from services.whisper import transcribe_audio
 
 router = APIRouter()
 
-ALLOWED_CONTENT_TYPES = {
+ALLOWED_AUDIO_PREFIXES = (
     "audio/webm",
     "audio/ogg",
     "audio/mp4",
@@ -11,18 +11,19 @@ ALLOWED_CONTENT_TYPES = {
     "audio/mpeg",
     "audio/x-m4a",
     "audio/m4a",
-    "application/octet-stream",  # Some browsers send this for webm
-}
+    "application/octet-stream",
+)
 
 MAX_AUDIO_BYTES = 25 * 1024 * 1024  # 25 MB (Whisper API limit)
 
 
 @router.post("/transcribe")
 async def transcribe_endpoint(audio: UploadFile = File(...)):
-    if audio.content_type not in ALLOWED_CONTENT_TYPES:
+    content_type = audio.content_type or ""
+    if not any(content_type.startswith(p) for p in ALLOWED_AUDIO_PREFIXES):
         raise HTTPException(
             status_code=415,
-            detail=f"Unsupported audio format: {audio.content_type}",
+            detail=f"Unsupported audio format: {content_type}",
         )
 
     audio_bytes = await audio.read()
