@@ -7,7 +7,11 @@ import json
 import sys
 from pathlib import Path
 
-from auth import hash_password
+import bcrypt
+
+
+def hash_password(plain: str) -> str:
+    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
 USERS_FILE = Path(__file__).parent / "users.json"
 
