@@ -1,17 +1,20 @@
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.staticfiles import StaticFiles
 from routers import transcribe, refine
+from routers import auth as auth_router
 from config import load_presets
+from auth import get_current_user
 
 app = FastAPI(title="BlabLab")
 
+app.include_router(auth_router.router, prefix="/api")
 app.include_router(transcribe.router, prefix="/api")
 app.include_router(refine.router, prefix="/api")
 
 
 @app.get("/api/presets")
-async def get_presets():
+async def get_presets(current_user: dict = Depends(get_current_user)):
     presets = [{"id": p["id"], "label": p["label"]} for p in load_presets()]
     return {"presets": presets}
 

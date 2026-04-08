@@ -20,7 +20,7 @@
 
   async function initPresets() {
     try {
-      const res = await fetch("/api/presets");
+      const res = await authFetch("/api/presets");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { presets } = await res.json();
 
@@ -143,7 +143,7 @@
     formData.append("audio", blob, `recording.${ext}`);
 
     try {
-      const res = await fetch("/api/transcribe", {
+      const res = await authFetch("/api/transcribe", {
         method: "POST",
         body: formData,
       });
@@ -178,7 +178,7 @@
     setStatus("Refining…", "active");
 
     try {
-      const res = await fetch("/api/refine", {
+      const res = await authFetch("/api/refine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transcript, preset_id: presetId }),

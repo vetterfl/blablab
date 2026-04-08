@@ -1,5 +1,6 @@
 .env
 .claude/
+backend/users.json
 __pycache__/
 *.pyc
 *.pyo

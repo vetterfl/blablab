@@ -16,9 +16,17 @@ Self-hosted voice dictation app. Record speech in the browser, get an AI transcr
    OPENAI_API_KEY=sk-...
    OPENROUTER_API_KEY=sk-or-...
    OPENROUTER_MODEL=openai/gpt-4o-mini   # any OpenRouter model slug
+   SECRET_KEY=                            # generate with: python -c "import secrets; print(secrets.token_hex(32))"
    ```
 
-2. **Run** (pick one):
+2. **Add at least one user:**
+   ```bash
+   cd backend && pip install -r requirements.txt
+   python add_user.py <username> <password>
+   ```
+   Users are stored in `backend/users.json` (gitignored). Run the script once per user.
+
+3. **Run** (pick one):
 
    | Mode | Command |
    |------|---------|
@@ -56,6 +64,24 @@ presets:
 ```
 
 To change the LLM model, update `OPENROUTER_MODEL` in `.env` to any model available on [openrouter.ai](https://openrouter.ai/models).
+
+---
+
+## Authentication
+
+The app requires login. All API routes are protected — unauthenticated requests receive a `401`.
+
+**How it works:**
+- On first visit, a login overlay covers the UI
+- After a successful login, a JWT is stored in `localStorage` (24-hour expiry)
+- Clicking *Sign out* in the header clears the token and returns to the login screen
+- An expired or invalid token automatically shows the login overlay again
+
+**Managing users** (run from `backend/`):
+```bash
+python add_user.py <username> <password>   # add a user
+```
+There is no delete command — remove an entry from `backend/users.json` manually to revoke access.
 
 ---
 

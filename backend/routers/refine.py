@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from auth import get_current_user
 from pydantic import BaseModel
 from services.llm import refine_text
 from config import load_presets
@@ -12,7 +13,10 @@ class RefineRequest(BaseModel):
 
 
 @router.post("/refine")
-async def refine_endpoint(body: RefineRequest):
+async def refine_endpoint(
+    body: RefineRequest,
+    current_user: dict = Depends(get_current_user),
+):
     if not body.transcript.strip():
         raise HTTPException(status_code=400, detail="Transcript is empty")
 
