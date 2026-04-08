@@ -2,6 +2,7 @@
   let mediaRecorder = null;
   let audioChunks = [];
   let isRecording = false;
+  let isPaused = false;
 
   const btnRecord = document.getElementById("btn-record");
   const btnStop = document.getElementById("btn-stop");
@@ -46,7 +47,11 @@
 
   // ── Recording ───────────────────────────────────────────────────────────────
 
-  btnRecord.addEventListener("click", startRecording);
+  btnRecord.addEventListener("click", () => {
+    if (!isRecording) startRecording();
+    else if (!isPaused) pauseRecording();
+    else resumeRecording();
+  });
   btnStop.addEventListener("click", stopRecording);
 
   async function startRecording() {
@@ -82,25 +87,48 @@
     mediaRecorder.start(250); // collect in 250 ms chunks
     isRecording = true;
 
-    btnRecord.disabled = true;
+    btnRecord.disabled = false;
     btnRecord.classList.add("recording");
     recordRing.classList.add("active");
     waveform.classList.add("active");
-    recordIcon.textContent = "■";
+    recordIcon.textContent = "⏸";
     btnStop.disabled = false;
     setPresetsEnabled(false);
     refinedSection.hidden = true;
     setStatus("Recording…", "active");
   }
 
+  function pauseRecording() {
+    mediaRecorder.pause();
+    isPaused = true;
+    recordIcon.textContent = "▶";
+    btnRecord.classList.remove("recording");
+    btnRecord.classList.add("paused");
+    recordRing.classList.remove("active");
+    waveform.classList.remove("active");
+    setStatus("Paused — click to resume", "paused");
+  }
+
+  function resumeRecording() {
+    mediaRecorder.resume();
+    isPaused = false;
+    recordIcon.textContent = "⏸";
+    btnRecord.classList.remove("paused");
+    btnRecord.classList.add("recording");
+    recordRing.classList.add("active");
+    waveform.classList.add("active");
+    setStatus("Recording…", "active");
+  }
+
   function stopRecording() {
     if (!mediaRecorder || !isRecording) return;
     isRecording = false;
+    isPaused = false;
     mediaRecorder.stop();
 
     btnStop.disabled = true;
-    btnRecord.disabled = false;
-    btnRecord.classList.remove("recording");
+    btnRecord.disabled = true;
+    btnRecord.classList.remove("recording", "paused");
     recordRing.classList.remove("active");
     waveform.classList.remove("active");
     recordIcon.textContent = "●";
@@ -123,9 +151,11 @@
       if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
 
       transcriptEl.value = data.transcript;
+      btnRecord.disabled = false;
       setPresetsEnabled(true);
       setStatus("Transcription complete. Edit if needed, then pick a preset.", "success");
     } catch (err) {
+      btnRecord.disabled = false;
       setStatus(`Transcription failed: ${err.message}`, "error");
     }
   }

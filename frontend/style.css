@@ -180,6 +180,12 @@ body {
   animation: record-pulse 1.4s ease-in-out infinite;
 }
 
+.btn-record-main.paused {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  animation: none;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+}
+
 .record-icon {
   font-size: 2rem;
   color: #fff;
@@ -213,6 +219,7 @@ body {
 .status-text.active  { color: #a5b4fc; }
 .status-text.error   { color: #f87171; }
 .status-text.success { color: var(--green); }
+.status-text.paused  { color: #fbbf24; }
 
 /* ── Waveform animation ──────────────────────────────────────────────────── */
 .waveform {
