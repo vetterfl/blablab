@@ -413,6 +413,8 @@ body {
   animation: fade-up 0.3s ease;
 }
 
+.auth-overlay[hidden] { display: none; }
+
 .auth-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
