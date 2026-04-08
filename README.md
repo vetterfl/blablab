@@ -81,6 +81,12 @@ The app requires login. All API routes are protected — unauthenticated request
 ```bash
 python add_user.py <username> <password>   # add a user
 ```
+
+With Docker (container must be running):
+```bash
+docker compose exec app python add_user.py <username> <password>
+```
+
 There is no delete command — remove an entry from `backend/users.json` manually to revoke access.
 
 ---
