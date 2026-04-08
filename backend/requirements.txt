@@ -7,3 +7,4 @@ PyYAML==6.0.2
 python-dotenv==1.0.1
 python-jose[cryptography]==3.3.0
 bcrypt==5.0.0
+slowapi==0.1.9

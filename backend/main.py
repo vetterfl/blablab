@@ -1,12 +1,17 @@
 from pathlib import Path
 from fastapi import Depends, FastAPI
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from limiter import limiter
 from routers import transcribe, refine
 from routers import auth as auth_router
 from config import load_presets
 from auth import get_current_user
 
 app = FastAPI(title="BlabLab")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(auth_router.router, prefix="/api")
 app.include_router(transcribe.router, prefix="/api")

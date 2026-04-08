@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from auth import create_access_token, get_user, verify_password
+from limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -12,7 +13,8 @@ class LoginRequest(BaseModel):
 
 
 @router.post("/login")
-async def login(body: LoginRequest):
+@limiter.limit("10/minute")
+async def login(request: Request, body: LoginRequest):
     user = get_user(body.username)
     if not user or not verify_password(body.password, user["hashed_password"]):
         raise HTTPException(
