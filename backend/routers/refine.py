@@ -1,14 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from auth import get_current_user
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from services.llm import refine_text
 from config import load_presets
 
 router = APIRouter()
 
+MAX_TRANSCRIPT_CHARS = 2000
+
 
 class RefineRequest(BaseModel):
-    transcript: str
+    transcript: str = Field(..., min_length=1, max_length=MAX_TRANSCRIPT_CHARS)
     preset_id: str
 
 

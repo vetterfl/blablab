@@ -1,8 +1,12 @@
 (() => {
+  const MAX_RECORD_SECONDS = 90;
+
   let mediaRecorder = null;
   let audioChunks = [];
   let isRecording = false;
   let isPaused = false;
+  let recordingTimer = null;
+  let recordingSecondsLeft = 0;
 
   const btnRecord = document.getElementById("btn-record");
   const btnStop = document.getElementById("btn-stop");
@@ -95,7 +99,18 @@
     btnStop.disabled = false;
     setPresetsEnabled(false);
     refinedSection.hidden = true;
-    setStatus("Recording…", "active");
+
+    recordingSecondsLeft = MAX_RECORD_SECONDS;
+    setStatus(`Recording… (${recordingSecondsLeft}s)`, "active");
+    recordingTimer = setInterval(() => {
+      if (isPaused) return;
+      recordingSecondsLeft--;
+      if (recordingSecondsLeft <= 0) {
+        stopRecording();
+      } else {
+        setStatus(`Recording… (${recordingSecondsLeft}s)`, "active");
+      }
+    }, 1000);
   }
 
   function pauseRecording() {
@@ -117,11 +132,13 @@
     btnRecord.classList.add("recording");
     recordRing.classList.add("active");
     waveform.classList.add("active");
-    setStatus("Recording…", "active");
+    setStatus(`Recording… (${recordingSecondsLeft}s)`, "active");
   }
 
   function stopRecording() {
     if (!mediaRecorder || !isRecording) return;
+    clearInterval(recordingTimer);
+    recordingTimer = null;
     isRecording = false;
     isPaused = false;
     mediaRecorder.stop();
