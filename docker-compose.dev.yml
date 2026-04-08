@@ -1,0 +1,24 @@
+# Development override — use with:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Changes from prod:
+#   - uvicorn --reload for hot-reload on code changes
+#   - backend/ and frontend/ mounted as volumes (edit without rebuilding)
+#   - app port exposed directly; nginx service removed
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final        # still use the multi-stage image
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+
+  nginx:
+    profiles:
+      - donotstart          # effectively disables the nginx service in dev

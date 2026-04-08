@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dictator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Dictator</h1>
+
+    <section class="record-section">
+      <div class="controls">
+        <button id="btn-record" class="btn btn-record">Record</button>
+        <button id="btn-stop" class="btn btn-stop" disabled>Stop</button>
+      </div>
+      <p id="status" class="status">Ready</p>
+    </section>
+
+    <section class="transcript-section">
+      <label for="transcript">Transcript</label>
+      <textarea
+        id="transcript"
+        placeholder="Your dictation will appear here. You can edit it before refining."
+        rows="6"
+      ></textarea>
+    </section>
+
+    <section class="presets-section">
+      <p class="section-label">Refine with</p>
+      <div id="preset-buttons" class="preset-buttons">
+        <span class="loading-presets">Loading presets…</span>
+      </div>
+    </section>
+
+    <section class="refined-section" id="refined-section" hidden>
+      <label for="refined">Refined Output</label>
+      <textarea id="refined" readonly rows="6"></textarea>
+      <button id="btn-copy" class="btn btn-copy">Copy to Clipboard</button>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
