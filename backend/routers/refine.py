@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from auth import get_current_user
 from config import settings
 from database import get_db
+from limiter import limiter
 from models import User
 from services.llm import refine_text
 from services.presets import get_preset_by_slug
@@ -16,12 +17,14 @@ MAX_TRANSCRIPT_CHARS = 2000
 
 class RefineRequest(BaseModel):
     transcript: str = Field(..., min_length=1, max_length=MAX_TRANSCRIPT_CHARS)
-    preset_id: str
+    preset_id: str = Field(..., min_length=1, max_length=100)
     context: str = Field(default="", max_length=5000)
 
 
 @router.post("/refine")
+@limiter.limit("30/minute")
 async def refine_endpoint(
+    request: Request,
     body: RefineRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

@@ -1,5 +1,7 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from auth import get_current_user
@@ -31,14 +33,21 @@ class PresetOut(BaseModel):
 class PresetCreate(BaseModel):
     slug: str = Field(..., min_length=1, max_length=100)
     label: str = Field(..., min_length=1, max_length=200)
-    prompt: str = Field(..., min_length=1)
+    prompt: str = Field(..., min_length=1, max_length=4000)
     model: str | None = None
     subject_field: bool = False
+
+    @field_validator("slug")
+    @classmethod
+    def slug_format(cls, v: str) -> str:
+        if not re.match(r"^[a-z0-9_]+$", v):
+            raise ValueError("slug must contain only lowercase letters, digits, and underscores")
+        return v
 
 
 class PresetUpdate(BaseModel):
     label: str | None = None
-    prompt: str | None = None
+    prompt: str | None = Field(default=None, max_length=4000)
     model: str | None = None
     subject_field: bool | None = None
 

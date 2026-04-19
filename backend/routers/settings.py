@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from auth import get_current_user, verify_password, hash_password
 from config import AVAILABLE_MODELS
 from database import get_db
+from limiter import limiter
 from models import User
 from services.users import change_password, update_default_model
 
@@ -22,7 +23,7 @@ class UpdateDefaultModel(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(..., min_length=1)
-    new_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
 
 
 @router.get("")
@@ -49,7 +50,9 @@ async def update_settings(
 
 
 @router.post("/change-password")
+@limiter.limit("5/minute")
 async def change_password_endpoint(
+    request: Request,
     body: ChangePasswordRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
