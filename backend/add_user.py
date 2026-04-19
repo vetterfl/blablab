@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
-"""Add a user to users.json.
+"""Add a user to the database.
 
 Usage: python add_user.py <username> <password>
 """
-import json
 import sys
-from pathlib import Path
 
-import bcrypt
-
-
-def hash_password(plain: str) -> str:
-    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
-
-USERS_FILE = Path(__file__).parent / "users.json"
+from database import engine, Base, SessionLocal
+from services.users import get_user_by_username, create_user
+from auth import hash_password
 
 
 def main():
@@ -22,15 +16,18 @@ def main():
         sys.exit(1)
 
     username, password = sys.argv[1], sys.argv[2]
-    users = json.loads(USERS_FILE.read_text()) if USERS_FILE.exists() else []
 
-    if any(u["username"] == username for u in users):
-        print(f"Error: user '{username}' already exists")
-        sys.exit(1)
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        if get_user_by_username(db, username):
+            print(f"Error: user '{username}' already exists")
+            sys.exit(1)
 
-    users.append({"username": username, "hashed_password": hash_password(password)})
-    USERS_FILE.write_text(json.dumps(users, indent=2))
-    print(f"User '{username}' added.")
+        create_user(db, username, hash_password(password))
+        print(f"User '{username}' added.")
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

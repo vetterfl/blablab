@@ -5,7 +5,10 @@ services:
       dockerfile: Dockerfile
     env_file: .env
     volumes:
-      - ./backend/users.json:/app/backend/users.json
+      - blablab_data:/app/backend/data
     restart: unless-stopped
     ports:
       - "${APP_PORT:-8000}:8000"
+
+volumes:
+  blablab_data:
