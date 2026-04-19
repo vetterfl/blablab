@@ -140,16 +140,11 @@ async function handleChangePassword() {
 
 <style scoped>
 .settings-page {
-  flex: 1;
-  overflow: auto;
   padding: 32px 28px;
-  display: flex;
-  justify-content: center;
 }
 
 .settings-inner {
   width: 100%;
-  max-width: 480px;
   display: flex;
   flex-direction: column;
   gap: 0;

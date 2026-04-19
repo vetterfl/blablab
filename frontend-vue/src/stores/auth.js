@@ -7,26 +7,29 @@ export const useAuthStore = defineStore(
   () => {
     const token = ref(null)
     const isAdmin = ref(false)
+    const username = ref(null)
 
     const isLoggedIn = computed(() => !!token.value)
 
-    async function login(username, password) {
-      const data = await apiLogin(username, password)
+    async function login(u, password) {
+      const data = await apiLogin(u, password)
       token.value = data.access_token
       isAdmin.value = data.is_admin ?? false
+      username.value = u
     }
 
     function logout() {
       token.value = null
       isAdmin.value = false
+      username.value = null
     }
 
-    return { token, isAdmin, isLoggedIn, login, logout }
+    return { token, isAdmin, username, isLoggedIn, login, logout }
   },
   {
     persist: {
       key: 'blablab_token',
-      paths: ['token', 'isAdmin'],
+      paths: ['token', 'isAdmin', 'username'],
     },
   }
 )

@@ -182,11 +182,7 @@ async function handleDelete() {
 
 <style scoped>
 .settings-page {
-  flex: 1;
-  overflow: auto;
   padding: 32px 28px;
-  display: flex;
-  justify-content: center;
 }
 
 .settings-inner {
