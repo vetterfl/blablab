@@ -41,6 +41,26 @@
       </button>
     </div>
 
+    <div class="divider"></div>
+
+    <!-- Ad-hoc prompt -->
+    <div>
+      <div class="section-label">Ad-hoc prompt</div>
+      <textarea
+        v-model="adhocPrompt"
+        class="fancy-textarea adhoc-textarea"
+        placeholder="Type a custom instruction, e.g. «Summarize in 3 bullet points»…"
+        rows="4"
+      ></textarea>
+      <button
+        class="btn btn-copy adhoc-run-btn"
+        :disabled="refining || !hasTranscript || !adhocPrompt.trim()"
+        @click="handleAdhoc"
+      >
+        {{ refining && activePresetId === '__adhoc__' ? 'Running…' : 'Run' }}
+      </button>
+    </div>
+
     <div v-if="statusMsg" class="divider"></div>
     <p v-if="statusMsg" :class="['status-text', statusType]">{{ statusMsg }}</p>
   </div>
@@ -56,17 +76,12 @@
 <script setup>
 import { ref } from 'vue'
 import { usePresetsStore } from '../stores/presets.js'
+import { apiRefineAdhoc } from '../api/client.js'
 import PresetEditor from './PresetEditor.vue'
 
 const props = defineProps({
-  transcript: {
-    type: String,
-    default: '',
-  },
-  hasTranscript: {
-    type: Boolean,
-    default: false,
-  },
+  transcript: { type: String, default: '' },
+  hasTranscript: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['refined'])
@@ -76,6 +91,7 @@ const activePresetId = ref(null)
 const refining = ref(false)
 const statusMsg = ref('')
 const statusType = ref('')
+const adhocPrompt = ref('')
 
 const editorVisible = ref(false)
 const editingPreset = ref(null)
@@ -87,10 +103,7 @@ function setStatus(msg, type = '') {
 
 async function handleRefine(preset) {
   const transcript = props.transcript.trim()
-  if (!transcript) {
-    setStatus('Nothing to refine — transcript is empty.', 'error')
-    return
-  }
+  if (!transcript) { setStatus('Nothing to refine — transcript is empty.', 'error'); return }
 
   const id = preset.id ?? preset.slug
   activePresetId.value = id
@@ -98,13 +111,34 @@ async function handleRefine(preset) {
   setStatus('Refining…', 'active')
 
   try {
-    const refined = await presets.refine(id, transcript)
-    emit('refined', refined)
+    const text = await presets.refine(id, transcript)
+    emit('refined', { text, last: { kind: 'preset', id } })
     setStatus('Done.', 'success')
   } catch (err) {
     setStatus(`Refinement failed: ${err.message}`, 'error')
   } finally {
     refining.value = false
+  }
+}
+
+async function handleAdhoc() {
+  const transcript = props.transcript.trim()
+  const prompt = adhocPrompt.value.trim()
+  if (!transcript || !prompt) return
+
+  activePresetId.value = '__adhoc__'
+  refining.value = true
+  setStatus('Refining…', 'active')
+
+  try {
+    const data = await apiRefineAdhoc(transcript, prompt)
+    emit('refined', { text: data.refined, last: { kind: 'adhoc', prompt } })
+    setStatus('Done.', 'success')
+  } catch (err) {
+    setStatus(`Refinement failed: ${err.message}`, 'error')
+  } finally {
+    refining.value = false
+    activePresetId.value = null
   }
 }
 
@@ -118,9 +152,7 @@ function openCreate() {
   editorVisible.value = true
 }
 
-function onSaved() {
-  // fetchPresets is called inside PresetEditor on save
-}
+function onSaved() {}
 </script>
 
 <style scoped>
@@ -164,5 +196,17 @@ function onSaved() {
 .btn-new-preset {
   margin-top: 10px;
   font-size: 12px;
+}
+
+.adhoc-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 90px;
+  font-size: 13px;
+}
+
+.adhoc-run-btn {
+  margin-top: 8px;
+  width: 100%;
 }
 </style>

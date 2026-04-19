@@ -13,6 +13,18 @@
           <p class="card-subtitle">Rewritten by AI. Edit, re-run, or copy.</p>
         </div>
         <div class="result-actions">
+          <button
+            class="btn btn-rerun"
+            :disabled="rerunning"
+            @click="$emit('rerun')"
+            title="Re-run with same preset"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 1 0 .49-4"/>
+            </svg>
+            {{ rerunning ? 'Running…' : 'Re-run' }}
+          </button>
           <button class="btn btn-copy" @click="copyText">{{ copyLabel }}</button>
         </div>
       </div>
@@ -31,12 +43,10 @@
 import { ref } from 'vue'
 
 defineProps({
-  text: {
-    type: String,
-    default: '',
-  },
+  text: { type: String, default: '' },
+  rerunning: { type: Boolean, default: false },
 })
-defineEmits(['update:text'])
+defineEmits(['update:text', 'rerun'])
 
 const copyLabel = ref('Copy')
 
@@ -46,12 +56,26 @@ async function copyText() {
   try {
     await navigator.clipboard.writeText(textarea.value)
     copyLabel.value = '✓ Copied!'
-    setTimeout(() => {
-      copyLabel.value = 'Copy'
-    }, 1500)
+    setTimeout(() => { copyLabel.value = 'Copy' }, 1500)
   } catch {
     textarea.select()
     document.execCommand('copy')
   }
 }
 </script>
+
+<style scoped>
+.result-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-rerun {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+}
+</style>

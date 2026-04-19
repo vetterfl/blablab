@@ -13,7 +13,7 @@
       <div class="col-left">
         <RecordSection @transcribed="onTranscribed" />
         <TranscriptSection v-model="transcript" />
-        <RefinedSection :text="refined" />
+        <RefinedSection :text="refined" :rerunning="rerunning" @rerun="onRerun" />
       </div>
       <RefinePanel
         :transcript="transcript"
@@ -59,6 +59,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from './stores/auth.js'
+import { usePresetsStore } from './stores/presets.js'
+import { apiRefineAdhoc } from './api/client.js'
 import AppHeader from './components/AppHeader.vue'
 import LoginOverlay from './components/LoginOverlay.vue'
 import RecordSection from './components/RecordSection.vue'
@@ -69,18 +71,39 @@ import SettingsPage from './components/SettingsPage.vue'
 import UsersPage from './components/UsersPage.vue'
 
 const auth = useAuthStore()
+const presets = usePresetsStore()
 const transcript = ref('')
 const refined = ref('')
 const showSettings = ref(false)
 const showUsers = ref(false)
+const lastRefinement = ref(null)
+const rerunning = ref(false)
 
 function onTranscribed(text) {
   transcript.value = text
   refined.value = ''
 }
 
-function onRefined(text) {
+function onRefined({ text, last }) {
   refined.value = text
+  lastRefinement.value = last
+}
+
+async function onRerun() {
+  if (!lastRefinement.value || !transcript.value.trim()) return
+  rerunning.value = true
+  try {
+    if (lastRefinement.value.kind === 'preset') {
+      refined.value = await presets.refine(lastRefinement.value.id, transcript.value)
+    } else {
+      const data = await apiRefineAdhoc(transcript.value, lastRefinement.value.prompt)
+      refined.value = data.refined
+    }
+  } catch {
+    // silent — panel shows errors; re-run is best-effort
+  } finally {
+    rerunning.value = false
+  }
 }
 
 function onKeydown(e) {

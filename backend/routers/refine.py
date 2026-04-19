@@ -21,6 +21,12 @@ class RefineRequest(BaseModel):
     context: str = Field(default="", max_length=5000)
 
 
+class AdhocRefineRequest(BaseModel):
+    transcript: str = Field(..., min_length=1, max_length=MAX_TRANSCRIPT_CHARS)
+    prompt: str = Field(..., min_length=1, max_length=2000)
+    model: str | None = None
+
+
 @router.post("/refine")
 @limiter.limit("30/minute")
 async def refine_endpoint(
@@ -46,6 +52,26 @@ async def refine_endpoint(
 
     try:
         refined = await refine_text(user_content, preset.prompt, model)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return {"refined": refined}
+
+
+@router.post("/refine/adhoc")
+@limiter.limit("30/minute")
+async def refine_adhoc_endpoint(
+    request: Request,
+    body: AdhocRefineRequest,
+    current_user: User = Depends(get_current_user),
+):
+    if not body.transcript.strip():
+        raise HTTPException(status_code=400, detail="Transcript is empty")
+
+    model = body.model or current_user.default_model or settings.openrouter_model
+
+    try:
+        refined = await refine_text(body.transcript, body.prompt, model)
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 

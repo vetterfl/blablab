@@ -32,6 +32,17 @@ export async function apiGetPresets() {
   return data
 }
 
+export async function apiRefineAdhoc(transcript, prompt, model = null) {
+  const res = await authFetch('/api/refine/adhoc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transcript, prompt, model }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
 export async function apiRefine(transcript, presetId) {
   const res = await authFetch('/api/refine', {
     method: 'POST',
