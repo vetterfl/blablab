@@ -13,7 +13,7 @@ from routers import auth as auth_router
 from routers import presets as presets_router
 from routers import settings as settings_router
 
-logger = logging.getLogger("blablab.access")
+logger = logging.getLogger("uvicorn.error")
 
 Base.metadata.create_all(bind=engine)
 
