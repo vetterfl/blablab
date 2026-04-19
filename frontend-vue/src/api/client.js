@@ -104,6 +104,43 @@ export async function apiUpdateSettings(settings) {
   return data
 }
 
+export async function apiListUsers() {
+  const res = await authFetch('/api/users')
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiCreateUser(username, password, isAdmin) {
+  const res = await authFetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, is_admin: isAdmin }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiUpdateUser(userId, updates) {
+  const res = await authFetch(`/api/users/${userId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiDeleteUser(userId) {
+  const res = await authFetch(`/api/users/${userId}`, { method: 'DELETE' })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail || `HTTP ${res.status}`)
+  }
+}
+
 export async function apiChangePassword(currentPassword, newPassword) {
   const res = await authFetch('/api/settings/change-password', {
     method: 'POST',

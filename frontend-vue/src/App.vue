@@ -2,9 +2,15 @@
   <LoginOverlay v-if="!auth.isLoggedIn" />
 
   <template v-else>
-    <AppHeader :show-settings="showSettings" @toggle-settings="showSettings = !showSettings" />
+    <AppHeader
+      :show-settings="showSettings"
+      :show-users="showUsers"
+      @toggle-settings="showSettings = !showSettings; showUsers = false"
+      @toggle-users="showUsers = !showUsers; showSettings = false"
+    />
 
-    <SettingsPage v-if="showSettings" />
+    <UsersPage v-if="showUsers" />
+    <SettingsPage v-else-if="showSettings" />
 
     <template v-else>
       <div class="layout-body">
@@ -40,11 +46,13 @@ import TranscriptSection from './components/TranscriptSection.vue'
 import RefinedSection from './components/RefinedSection.vue'
 import RefinePanel from './components/RefinePanel.vue'
 import SettingsPage from './components/SettingsPage.vue'
+import UsersPage from './components/UsersPage.vue'
 
 const auth = useAuthStore()
 const transcript = ref('')
 const refined = ref('')
 const showSettings = ref(false)
+const showUsers = ref(false)
 
 function onTranscribed(text) {
   transcript.value = text

@@ -7,8 +7,27 @@ def get_user_by_username(db: Session, username: str) -> User | None:
     return db.query(User).filter(User.username == username).first()
 
 
-def create_user(db: Session, username: str, hashed_password: str) -> User:
-    user = User(username=username, hashed_password=hashed_password)
+def list_users(db: Session) -> list[User]:
+    return db.query(User).order_by(User.username).all()
+
+
+def get_user_by_id(db: Session, user_id: int) -> User | None:
+    return db.query(User).filter(User.id == user_id).first()
+
+
+def delete_user(db: Session, user_id: int) -> None:
+    db.query(User).filter(User.id == user_id).delete()
+    db.commit()
+
+
+def update_user(db: Session, user_id: int, **kwargs) -> User | None:
+    db.query(User).filter(User.id == user_id).update(kwargs)
+    db.commit()
+    return get_user_by_id(db, user_id)
+
+
+def create_user(db: Session, username: str, hashed_password: str, is_admin: bool = False) -> User:
+    user = User(username=username, hashed_password=hashed_password, is_admin=is_admin)
     db.add(user)
     db.flush()  # populate user.id before creating presets
 

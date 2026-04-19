@@ -8,6 +8,13 @@
       <p class="tagline">Speak. Transcribe. Refine.</p>
       <div class="header-actions">
         <button
+          v-if="auth.isAdmin"
+          :class="['btn', 'btn-logout', { 'btn-logout--active': showUsers }]"
+          @click="emit('toggleUsers')"
+        >
+          Users
+        </button>
+        <button
           :class="['btn', 'btn-logout', { 'btn-logout--active': showSettings }]"
           @click="emit('toggleSettings')"
         >
@@ -26,9 +33,10 @@ const auth = useAuthStore()
 
 defineProps({
   showSettings: { type: Boolean, default: false },
+  showUsers: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['toggleSettings'])
+const emit = defineEmits(['toggleSettings', 'toggleUsers'])
 </script>
 
 <style scoped>

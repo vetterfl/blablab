@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from sqlalchemy import text
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from limiter import limiter
 from database import engine, Base
@@ -12,10 +13,18 @@ from routers import transcribe, refine
 from routers import auth as auth_router
 from routers import presets as presets_router
 from routers import settings as settings_router
+from routers import users as users_router
 
 logger = logging.getLogger("uvicorn.error")
 
 Base.metadata.create_all(bind=engine)
+
+# Inline migration: add is_admin column if it doesn't exist yet
+with engine.connect() as conn:
+    cols = [row[1] for row in conn.execute(text("PRAGMA table_info(users)"))]
+    if "is_admin" not in cols:
+        conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"))
+        conn.commit()
 
 app = FastAPI(title="BlabLab")
 
@@ -47,6 +56,7 @@ app.include_router(transcribe.router, prefix="/api")
 app.include_router(refine.router, prefix="/api")
 app.include_router(presets_router.router, prefix="/api")
 app.include_router(settings_router.router, prefix="/api")
+app.include_router(users_router.router, prefix="/api")
 
 
 # Serve frontend — registered last so API routes take priority

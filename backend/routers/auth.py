@@ -26,4 +26,4 @@ async def login(request: Request, body: LoginRequest, db: Session = Depends(get_
             headers={"WWW-Authenticate": "Bearer"},
         )
     token = create_access_token({"sub": user.username})
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": token, "token_type": "bearer", "is_admin": user.is_admin}

@@ -18,6 +18,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
     default_model = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
