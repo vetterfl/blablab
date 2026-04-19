@@ -10,10 +10,10 @@ cd backend && uvicorn main:app --reload          # API on :8000
 cd frontend-vue && npm run dev                   # Vite on :5173 (proxies /api → :8000)
 
 # Development with Docker (hot-reload)
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+docker compose -f docker-compose.yaml -f docker-compose.dev.yml up
 
 # Production
-docker compose up -d --build
+docker compose -f docker-compose.yaml up -d --build
 
 # Build frontend (outputs to frontend-dist/)
 cd frontend-vue && npm run build

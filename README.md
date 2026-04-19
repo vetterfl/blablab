@@ -26,13 +26,19 @@ Self-hosted voice dictation app. Record speech in the browser, get an AI transcr
    ```
    Users are stored in SQLite (`blablab.db`). Each new user is seeded with default presets.
 
-3. **Run** (pick one):
+3. **Copy the compose file and customise:**
+   ```bash
+   cp docker-compose.yaml.example docker-compose.yaml
+   ```
+   `docker-compose.yaml` is gitignored — edit it freely without risking merge conflicts.
+
+4. **Run** (pick one):
 
    | Mode | Command |
    |------|---------|
    | Development (no Docker) | `cd backend && uvicorn main:app --reload` + `cd frontend-vue && npm run dev` |
-   | Development (Docker) | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up` |
-   | Production | `docker compose up -d --build` |
+   | Development (Docker) | `docker compose -f docker-compose.yaml -f docker-compose.dev.yml up` |
+   | Production | `docker compose -f docker-compose.yaml up -d --build` |
 
 4. Open `http://localhost:5173` (Vite dev) or `http://localhost:8000` (Docker / uvicorn).
 
