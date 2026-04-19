@@ -13,3 +13,7 @@ dist/
 frontend-dist/
 node_modules/
 .DS_Store
+backend/blablab.db
+backend/blablab.db-shm
+backend/blablab.db-wal
+*.zip
