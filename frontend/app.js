@@ -239,5 +239,6 @@
 
   // ── Init ─────────────────────────────────────────────────────────────────────
 
-  initPresets();
+  if (window.getToken()) initPresets();
+  window.addEventListener('blablab:login', initPresets);
 })();
