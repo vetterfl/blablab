@@ -66,6 +66,24 @@
 
             <div class="dropdown-divider"></div>
 
+            <!-- Theme switcher -->
+            <div class="dropdown-theme">
+              <span class="dropdown-theme-label">Theme</span>
+              <div class="theme-toggle">
+                <button
+                  v-for="opt in themeOptions"
+                  :key="opt.value"
+                  :class="['theme-btn', { 'theme-btn--active': theme.mode === opt.value }]"
+                  :title="opt.label"
+                  @click="theme.setMode(opt.value)"
+                >
+                  <span v-html="opt.icon"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
             <button
               class="dropdown-item dropdown-item--danger"
               role="menuitem"
@@ -88,8 +106,16 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from '../stores/auth.js'
+import { useThemeStore } from '../stores/theme.js'
 
 const auth = useAuthStore()
+const theme = useThemeStore()
+
+const themeOptions = [
+  { value: 'dark',   label: 'Dark',   icon: '&#9790;' },
+  { value: 'system', label: 'System', icon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 2v16a8 8 0 0 1 0-16z"/></svg>' },
+  { value: 'light',  label: 'Light',  icon: '&#9728;' },
+]
 const open = ref(false)
 const wrapperRef = ref(null)
 
@@ -275,6 +301,52 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onOutsideClick))
 .dropdown-item--danger:hover {
   background: rgba(239, 68, 68, 0.08);
   color: #f87171;
+}
+
+.dropdown-theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+}
+
+.dropdown-theme-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.theme-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.theme-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.theme-btn:hover {
+  color: var(--text-strong);
+}
+
+.theme-btn--active {
+  background: var(--bg-card);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
 /* Transition */

@@ -24,6 +24,44 @@
   --font:          ui-sans-serif, -apple-system, 'Inter', system-ui, sans-serif;
 }
 
+:root[data-theme="light"] {
+  --bg:            #f1f5f9;
+  --bg-card:       #ffffff;
+  --bg-input:      #f7fafc;
+  --bg-side:       #eaf1f8;
+  --border:        #dde6ef;
+  --text:          #334155;
+  --text-strong:   #0b1220;
+  --text-muted:    #64748b;
+  --accent:        #38bdf8;
+  --accent-glow:   rgba(56, 189, 248, 0.25);
+  --on-accent:     #ffffff;
+  --chip-bg:       #e4ecf4;
+  --wave-muted:    #cbd6e0;
+  --result-bg:     #ffffff;
+  --red-glow:      rgba(239, 68, 68, 0.2);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --bg:            #f1f5f9;
+    --bg-card:       #ffffff;
+    --bg-input:      #f7fafc;
+    --bg-side:       #eaf1f8;
+    --border:        #dde6ef;
+    --text:          #334155;
+    --text-strong:   #0b1220;
+    --text-muted:    #64748b;
+    --accent:        #38bdf8;
+    --accent-glow:   rgba(56, 189, 248, 0.25);
+    --on-accent:     #ffffff;
+    --chip-bg:       #e4ecf4;
+    --wave-muted:    #cbd6e0;
+    --result-bg:     #ffffff;
+    --red-glow:      rgba(239, 68, 68, 0.2);
+  }
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -38,7 +76,7 @@ body {
 
 /* ── Topbar ─────────────────────────────────────────────────────────────── */
 .app-header {
-  background: #131a20;
+  background: var(--bg-side);
   border-bottom: 1px solid var(--border);
   padding: 0 28px;
   height: 56px;
