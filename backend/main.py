@@ -24,5 +24,8 @@ app.include_router(settings_router.router, prefix="/api")
 
 
 # Serve frontend — registered last so API routes take priority
-frontend_path = Path(__file__).parent.parent / "frontend"
+# Use Vite build output if available, otherwise fall back to vanilla frontend
+frontend_dist = Path(__file__).parent.parent / "frontend-dist"
+frontend_legacy = Path(__file__).parent.parent / "frontend"
+frontend_path = frontend_dist if frontend_dist.is_dir() else frontend_legacy
 app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")

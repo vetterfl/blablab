@@ -11,11 +11,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Auth overlay — shown when unauthenticated -->
+  <!-- Auth overlay -->
   <div id="auth-overlay" class="auth-overlay">
     <div class="auth-card">
       <div class="auth-logo">
-        <span>🎙</span>
+        <div class="logo-dot"></div>
         <span class="logo-text">BlabLab</span>
       </div>
       <h1 class="auth-title">Sign in</h1>
@@ -32,10 +32,11 @@
     </div>
   </div>
 
+  <!-- Topbar -->
   <header class="app-header">
     <div class="header-inner">
       <div class="logo">
-        <span class="logo-icon">🎙</span>
+        <div class="logo-dot"></div>
         <span class="logo-text">BlabLab</span>
       </div>
       <p class="tagline">Speak. Transcribe. Refine.</p>
@@ -43,74 +44,103 @@
     </div>
   </header>
 
-  <main class="container">
+  <!-- Two-column body -->
+  <div class="layout-body">
 
-    <!-- Record -->
-    <section class="card record-section">
-      <div class="card-header">
-        <h2 class="card-title">Record Audio</h2>
-        <p class="card-subtitle">Click record, speak naturally, then stop when done.</p>
-      </div>
-      <div class="record-controls">
-        <div class="record-btn-wrap">
-          <div class="record-ring" id="record-ring"></div>
-          <button id="btn-record" class="btn-record-main" aria-label="Record / Pause / Resume">
-            <span class="record-icon" id="record-icon">&#9679;</span>
-          </button>
-        </div>
-        <div class="record-info">
-          <p id="status" class="status-text">Ready to record</p>
-          <div class="waveform" id="waveform">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
+    <!-- LEFT: Record + Transcript + Result -->
+    <div class="col-left">
+
+      <!-- Record -->
+      <div>
+        <div class="step-label">01 &middot; Record</div>
+        <section class="card record-section">
+          <div class="card-header">
+            <div style="min-width:0">
+              <h2 class="card-title">Speak into the mic</h2>
+              <p class="card-subtitle">Click record, speak naturally, stop when done.</p>
+            </div>
+            <p id="status" class="status-text">Ready to record</p>
           </div>
-          <button id="btn-stop" class="btn btn-stop" disabled>
-            &#9632; Stop Recording
-          </button>
+          <div class="record-controls">
+            <div class="record-btn-wrap">
+              <div class="record-ring" id="record-ring"></div>
+              <button id="btn-record" class="btn-record-main" aria-label="Record / Pause / Resume">
+                <span class="record-icon" id="record-icon">&#9679;</span>
+              </button>
+            </div>
+            <div class="waveform" id="waveform">
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <button id="btn-stop" class="btn btn-stop" disabled>
+              &#9632; Stop
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Transcript -->
+      <div style="display:flex;flex-direction:column;min-height:0;flex:0 1 40%">
+        <div class="step-label">02 &middot; Transcript</div>
+        <section class="card transcript-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div class="card-header">
+            <div style="min-width:0">
+              <h2 class="card-title">Transcript</h2>
+              <p class="card-subtitle">Edit in place before refining.</p>
+            </div>
+          </div>
+          <textarea
+            id="transcript"
+            class="fancy-textarea"
+            placeholder="Your transcription will appear here. You can edit it before refining..."
+            style="flex:1;min-height:80px"
+          ></textarea>
+        </section>
+      </div>
+
+      <!-- Result -->
+      <div id="refined-section" class="refined-section" hidden>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;gap:12px">
+          <div class="step-label step-label--accent" style="margin-bottom:0">03 &middot; Result</div>
+        </div>
+        <div class="result-box">
+          <div class="result-header">
+            <div style="min-width:0">
+              <div class="result-title">
+                <span class="result-dot"></span>
+                Refined output
+              </div>
+              <p class="card-subtitle">Rewritten by AI. Edit, re-run, or copy.</p>
+            </div>
+            <div class="result-actions">
+              <button id="btn-copy" class="btn btn-copy">Copy</button>
+            </div>
+          </div>
+          <textarea id="refined" class="fancy-textarea fancy-textarea--output" readonly style="flex:1;min-height:80px"></textarea>
         </div>
       </div>
-    </section>
 
-    <!-- Transcript -->
-    <section class="card transcript-section">
-      <div class="card-header">
-        <h2 class="card-title">Transcript</h2>
-        <p class="card-subtitle">Edit the text below if needed before applying a preset.</p>
-      </div>
-      <textarea
-        id="transcript"
-        class="fancy-textarea"
-        placeholder="Your transcription will appear here. You can edit it before refining…"
-        rows="10"
-      ></textarea>
-    </section>
+    </div>
 
-    <!-- Presets -->
-    <section class="card presets-section">
-      <div class="card-header">
-        <h2 class="card-title">Refine with AI</h2>
-        <p class="card-subtitle">Choose a style to reformat your transcript instantly.</p>
+    <!-- RIGHT: Refine panel -->
+    <div class="col-right">
+      <div>
+        <div class="step-label step-label--accent">Refine</div>
+        <div class="refine-title">Refine with AI</div>
+        <div class="refine-subtitle">Pick a preset to reformat your transcript.</div>
       </div>
-      <div id="preset-buttons" class="preset-buttons">
-        <span class="loading-presets">Loading presets…</span>
-      </div>
-    </section>
 
-    <!-- Refined output -->
-    <section class="card refined-section" id="refined-section" hidden>
-      <div class="card-header">
-        <h2 class="card-title">Refined Output</h2>
-        <p class="card-subtitle">Your AI-polished text is ready.</p>
+      <div>
+        <div class="section-label">Quick presets</div>
+        <div id="preset-buttons" class="preset-buttons">
+          <span class="loading-presets">Loading presets...</span>
+        </div>
       </div>
-      <textarea id="refined" class="fancy-textarea fancy-textarea--output" readonly rows="10"></textarea>
-      <div class="copy-bar">
-        <button id="btn-copy" class="btn btn-copy">
-          <span id="copy-icon">&#10697;</span> Copy to Clipboard
-        </button>
-      </div>
-    </section>
 
-  </main>
+      <div class="divider"></div>
+    </div>
+
+  </div>
 
   <footer class="app-footer">
     <p>BlabLab &mdash; powered by Whisper &amp; OpenRouter</p>
