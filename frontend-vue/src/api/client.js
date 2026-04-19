@@ -62,3 +62,55 @@ export async function apiTranscribe(blob) {
   if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
   return data
 }
+
+export async function apiCreatePreset(preset) {
+  const res = await authFetch('/api/presets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preset),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiUpdatePreset(slug, preset) {
+  const res = await authFetch(`/api/presets/${slug}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preset),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiDeletePreset(slug) {
+  const res = await authFetch(`/api/presets/${slug}`, { method: 'DELETE' })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail || `HTTP ${res.status}`)
+  }
+}
+
+export async function apiUpdateSettings(settings) {
+  const res = await authFetch('/api/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiChangePassword(currentPassword, newPassword) {
+  const res = await authFetch('/api/settings/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}

@@ -9,33 +9,54 @@
     <div>
       <div class="section-label">Quick presets</div>
       <div class="preset-buttons">
-        <span v-if="presets.loading" class="loading-presets">Loading presets...</span>
+        <span v-if="presets.loading" class="loading-presets">Loading presets…</span>
         <span v-else-if="presets.error" class="status-text error">
           Failed to load presets: {{ presets.error }}
         </span>
         <template v-else>
-          <button
+          <div
             v-for="preset in presets.items"
             :key="preset.id ?? preset.slug"
-            :class="['btn-preset', { active: activePresetId === (preset.id ?? preset.slug) }]"
-            :disabled="refining || !hasTranscript"
-            @click="handleRefine(preset)"
+            class="preset-chip-wrap"
           >
-            {{ preset.label }}
-          </button>
+            <button
+              :class="['btn-preset', { active: activePresetId === (preset.id ?? preset.slug) }]"
+              :disabled="refining || !hasTranscript"
+              @click="handleRefine(preset)"
+            >
+              {{ preset.label }}
+            </button>
+            <button
+              class="btn-preset-edit"
+              title="Edit preset"
+              @click.stop="openEdit(preset)"
+            >&#9998;</button>
+          </div>
           <span v-if="!presets.items.length" class="loading-presets">No presets found.</span>
         </template>
       </div>
+
+      <button class="btn btn-rerun btn-new-preset" @click="openCreate">
+        + New preset
+      </button>
     </div>
 
     <div v-if="statusMsg" class="divider"></div>
     <p v-if="statusMsg" :class="['status-text', statusType]">{{ statusMsg }}</p>
   </div>
+
+  <PresetEditor
+    :show="editorVisible"
+    :preset="editingPreset"
+    @close="editorVisible = false"
+    @saved="onSaved"
+  />
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { usePresetsStore } from '../stores/presets.js'
+import PresetEditor from './PresetEditor.vue'
 
 const props = defineProps({
   transcript: {
@@ -55,6 +76,9 @@ const activePresetId = ref(null)
 const refining = ref(false)
 const statusMsg = ref('')
 const statusType = ref('')
+
+const editorVisible = ref(false)
+const editingPreset = ref(null)
 
 function setStatus(msg, type = '') {
   statusMsg.value = msg
@@ -83,4 +107,62 @@ async function handleRefine(preset) {
     refining.value = false
   }
 }
+
+function openEdit(preset) {
+  editingPreset.value = preset
+  editorVisible.value = true
+}
+
+function openCreate() {
+  editingPreset.value = null
+  editorVisible.value = true
+}
+
+function onSaved() {
+  // fetchPresets is called inside PresetEditor on save
+}
 </script>
+
+<style scoped>
+.preset-chip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.preset-chip-wrap .btn-preset-edit {
+  display: none;
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 10px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  z-index: 1;
+}
+
+.preset-chip-wrap:hover .btn-preset-edit {
+  display: flex;
+}
+
+.btn-preset-edit:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--chip-bg);
+}
+
+.btn-new-preset {
+  margin-top: 10px;
+  font-size: 12px;
+}
+</style>

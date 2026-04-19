@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { useAuthStore } from './auth.js'
-import { apiGetPresets, apiRefine } from '../api/client.js'
+import { apiGetPresets, apiRefine, apiDeletePreset } from '../api/client.js'
 
 export const usePresetsStore = defineStore('presets', () => {
   const items = ref([])
@@ -28,6 +28,11 @@ export const usePresetsStore = defineStore('presets', () => {
     return data.refined
   }
 
+  async function deletePreset(slug) {
+    await apiDeletePreset(slug)
+    items.value = items.value.filter((p) => p.slug !== slug)
+  }
+
   // Auto-fetch when user logs in
   const auth = useAuthStore()
   watch(
@@ -39,5 +44,5 @@ export const usePresetsStore = defineStore('presets', () => {
     { immediate: true }
   )
 
-  return { items, loading, error, fetchPresets, refine }
+  return { items, loading, error, fetchPresets, refine, deletePreset }
 })
