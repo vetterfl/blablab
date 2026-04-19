@@ -21,7 +21,7 @@
         @input="$emit('update:text', $event.target.value)"
         class="fancy-textarea fancy-textarea--output"
         readonly
-        style="flex:1;min-height:80px"
+        style="min-height:200px;resize:vertical"
       ></textarea>
     </div>
   </div>

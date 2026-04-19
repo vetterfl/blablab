@@ -535,10 +535,6 @@ body {
 
 /* ── Refined section fade-in ─────────────────────────────────────────────── */
 .refined-section {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1 1 60%;
   animation: fade-up 0.4s ease;
 }
 

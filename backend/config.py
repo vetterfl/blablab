@@ -21,14 +21,16 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-AVAILABLE_MODELS = [
-    "openai/gpt-4o-mini",
-    "openai/gpt-4o",
-    "anthropic/claude-sonnet-4-5-20250514",
-    "anthropic/claude-3-5-haiku-20241022",
-    "google/gemini-2.0-flash-001",
-    "meta-llama/llama-3.1-8b-instruct",
-]
+def load_models() -> list[str]:
+    models_path = Path(__file__).parent / "models.yaml"
+    if not models_path.exists():
+        return ["openai/gpt-4o-mini"]
+    with open(models_path) as f:
+        data = yaml.safe_load(f)
+    return data["models"]
+
+
+AVAILABLE_MODELS = load_models()
 
 
 def load_presets() -> list[dict]:
