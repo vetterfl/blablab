@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from services.whisper import transcribe_audio
+from auth import get_current_user
 
 router = APIRouter()
 
@@ -18,7 +19,10 @@ MAX_AUDIO_BYTES = 25 * 1024 * 1024  # 25 MB (Whisper API limit)
 
 
 @router.post("/transcribe")
-async def transcribe_endpoint(audio: UploadFile = File(...)):
+async def transcribe_endpoint(
+    audio: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+):
     content_type = audio.content_type or ""
     if not any(content_type.startswith(p) for p in ALLOWED_AUDIO_PREFIXES):
         raise HTTPException(

@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     openrouter_model: str = "openai/gpt-4o-mini"
     host: str = "127.0.0.1"
     port: int = 8000
+    secret_key: str
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24  # 24 hours
 
     class Config:
         env_file = Path(__file__).parent.parent / ".env"

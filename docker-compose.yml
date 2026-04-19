@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file: .env
+    volumes:
+      - ./backend/users.json:/app/backend/users.json
     restart: unless-stopped
     # Not exposed directly — nginx proxies to it
     expose:

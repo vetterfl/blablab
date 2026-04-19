@@ -1,8 +1,12 @@
 (() => {
+  const MAX_RECORD_SECONDS = 90;
+
   let mediaRecorder = null;
   let audioChunks = [];
   let isRecording = false;
   let isPaused = false;
+  let recordingTimer = null;
+  let recordingSecondsLeft = 0;
 
   const btnRecord = document.getElementById("btn-record");
   const btnStop = document.getElementById("btn-stop");
@@ -20,7 +24,7 @@
 
   async function initPresets() {
     try {
-      const res = await fetch("/api/presets");
+      const res = await authFetch("/api/presets");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { presets } = await res.json();
 
@@ -95,7 +99,18 @@
     btnStop.disabled = false;
     setPresetsEnabled(false);
     refinedSection.hidden = true;
-    setStatus("Recording…", "active");
+
+    recordingSecondsLeft = MAX_RECORD_SECONDS;
+    setStatus(`Recording… (${recordingSecondsLeft}s)`, "active");
+    recordingTimer = setInterval(() => {
+      if (isPaused) return;
+      recordingSecondsLeft--;
+      if (recordingSecondsLeft <= 0) {
+        stopRecording();
+      } else {
+        setStatus(`Recording… (${recordingSecondsLeft}s)`, "active");
+      }
+    }, 1000);
   }
 
   function pauseRecording() {
@@ -117,11 +132,13 @@
     btnRecord.classList.add("recording");
     recordRing.classList.add("active");
     waveform.classList.add("active");
-    setStatus("Recording…", "active");
+    setStatus(`Recording… (${recordingSecondsLeft}s)`, "active");
   }
 
   function stopRecording() {
     if (!mediaRecorder || !isRecording) return;
+    clearInterval(recordingTimer);
+    recordingTimer = null;
     isRecording = false;
     isPaused = false;
     mediaRecorder.stop();
@@ -143,7 +160,7 @@
     formData.append("audio", blob, `recording.${ext}`);
 
     try {
-      const res = await fetch("/api/transcribe", {
+      const res = await authFetch("/api/transcribe", {
         method: "POST",
         body: formData,
       });
@@ -178,7 +195,7 @@
     setStatus("Refining…", "active");
 
     try {
-      const res = await fetch("/api/refine", {
+      const res = await authFetch("/api/refine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transcript, preset_id: presetId }),
