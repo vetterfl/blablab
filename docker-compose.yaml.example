@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - blablab_data:/app/backend/data
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:8000"
+
+volumes:
+  blablab_data:

@@ -1,32 +1,77 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from auth import get_current_user
+from config import settings
+from database import get_db
+from limiter import limiter
+from models import User
 from services.llm import refine_text
-from config import load_presets
+from services.presets import get_preset_by_slug
 
 router = APIRouter()
 
+MAX_TRANSCRIPT_CHARS = 2000
+
 
 class RefineRequest(BaseModel):
-    transcript: str
-    preset_id: str
+    transcript: str = Field(..., min_length=1, max_length=MAX_TRANSCRIPT_CHARS)
+    preset_id: str = Field(..., min_length=1, max_length=100)
+    context: str = Field(default="", max_length=5000)
+
+
+class AdhocRefineRequest(BaseModel):
+    transcript: str = Field(..., min_length=1, max_length=MAX_TRANSCRIPT_CHARS)
+    prompt: str = Field(..., min_length=1, max_length=2000)
+    model: str | None = None
 
 
 @router.post("/refine")
-async def refine_endpoint(body: RefineRequest):
+@limiter.limit("30/minute")
+async def refine_endpoint(
+    request: Request,
+    body: RefineRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     if not body.transcript.strip():
         raise HTTPException(status_code=400, detail="Transcript is empty")
 
-    presets = {p["id"]: p for p in load_presets()}
-
-    if body.preset_id not in presets:
+    preset = get_preset_by_slug(db, current_user.id, body.preset_id)
+    if preset is None:
         raise HTTPException(
             status_code=400, detail=f"Unknown preset: {body.preset_id}"
         )
 
-    preset = presets[body.preset_id]
+    model = preset.model or current_user.default_model or settings.openrouter_model
+
+    user_content = body.transcript
+    if body.context.strip():
+        user_content = f"Context:\n{body.context}\n\n---\n\n{user_content}"
 
     try:
-        refined = await refine_text(body.transcript, preset["prompt"])
+        refined = await refine_text(user_content, preset.prompt, model)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return {"refined": refined}
+
+
+@router.post("/refine/adhoc")
+@limiter.limit("30/minute")
+async def refine_adhoc_endpoint(
+    request: Request,
+    body: AdhocRefineRequest,
+    current_user: User = Depends(get_current_user),
+):
+    if not body.transcript.strip():
+        raise HTTPException(status_code=400, detail="Transcript is empty")
+
+    model = body.model or current_user.default_model or settings.openrouter_model
+
+    try:
+        refined = await refine_text(body.transcript, body.prompt, model)
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 

@@ -4,14 +4,15 @@ from config import settings
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
-async def refine_text(transcript: str, system_prompt: str) -> str:
+async def refine_text(transcript: str, system_prompt: str, model: str | None = None) -> str:
     headers = {
         "Authorization": f"Bearer {settings.openrouter_api_key}",
         "HTTP-Referer": "http://localhost",
         "X-Title": "BlabLab",
     }
+    resolved_model = model or settings.openrouter_model
     payload = {
-        "model": settings.openrouter_model,
+        "model": resolved_model,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": transcript},

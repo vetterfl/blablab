@@ -1,5 +1,5 @@
 # Development override — use with:
-#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   docker compose -f docker-compose.yaml -f docker-compose.dev.yml up
 #
 # Changes from prod:
 #   - uvicorn --reload for hot-reload on code changes
@@ -17,8 +17,3 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app/backend
-      - ./frontend:/app/frontend
-
-  nginx:
-    profiles:
-      - donotstart          # effectively disables the nginx service in dev

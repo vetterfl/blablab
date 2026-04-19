@@ -2,7 +2,7 @@
 
 Self-hosted voice dictation app. Record speech in the browser, get an AI transcription, then refine it into a formal email, bullet points, short reply, or any custom preset — all in one click.
 
-**Stack:** Python / FastAPI · OpenAI Whisper · OpenRouter LLM · Vanilla JS · Docker + nginx
+**Stack:** Python / FastAPI · SQLite + SQLAlchemy · Vue 3 + Vite + Pinia · OpenAI Whisper · OpenRouter LLM · Docker
 
 ---
 
@@ -16,56 +16,109 @@ Self-hosted voice dictation app. Record speech in the browser, get an AI transcr
    OPENAI_API_KEY=sk-...
    OPENROUTER_API_KEY=sk-or-...
    OPENROUTER_MODEL=openai/gpt-4o-mini   # any OpenRouter model slug
+   SECRET_KEY=                            # generate with: python -c "import secrets; print(secrets.token_hex(32))"
    ```
 
-2. **Run** (pick one):
+2. **Add at least one user:**
+   ```bash
+   cd backend && pip install -r requirements.txt
+   python add_user.py <username> <password>
+   ```
+   Users are stored in SQLite (`blablab.db`). Each new user is seeded with default presets.
+
+3. **Copy the compose file and customise:**
+   ```bash
+   cp docker-compose.yaml.example docker-compose.yaml
+   ```
+   `docker-compose.yaml` is gitignored — edit it freely without risking merge conflicts.
+
+4. **Run** (pick one):
 
    | Mode | Command |
    |------|---------|
-   | Development (hot-reload) | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up` |
-   | Production | `docker compose up -d --build` |
-   | No Docker | `cd backend && pip install -r requirements.txt && uvicorn main:app --reload` |
+   | Development (no Docker) | `cd backend && uvicorn main:app --reload` + `cd frontend-vue && npm run dev` |
+   | Development (Docker) | `docker compose -f docker-compose.yaml -f docker-compose.dev.yml up` |
+   | Production | `docker compose -f docker-compose.yaml up -d --build` |
 
-3. Open `http://localhost:8000` (dev) or your server's domain (prod).
+4. Open `http://localhost:5173` (Vite dev) or `http://localhost:8000` (Docker / uvicorn).
 
 ---
 
 ## Usage
 
-1. **Record** — click *Record*, speak, click *Stop*.
-2. **Edit** — the transcript appears in a text box. Fix any mistakes before refining.
-3. **Refine** — click a preset button to reformat the text with AI:
+1. **Record** — click the mic button, speak, click Stop.
+2. **Edit** — the transcript appears in a text box. Fix any mistakes.
+3. **Refine** — pick a preset in the right panel to reformat with AI:
    - **Formal Email** — polished, professional email body
    - **Short Reply** — 1–3 sentence condensed reply
    - **Bullet Points** — key ideas as a dash list
    - **Casual Message** — friendly, conversational tone
    - **Clean Up** — grammar/punctuation fix, filler words removed
-4. **Copy** — click *Copy to Clipboard* to grab the refined output.
+4. **Copy** — grab the refined output.
 
 ---
 
-## Customising presets
+## Per-user presets
 
-Edit `backend/presets.yaml` — add, remove, or reword any preset. No code changes needed, just restart the server.
+Each user has their own set of presets stored in the database. New users are seeded with the defaults from `backend/presets.yaml`.
 
-```yaml
-presets:
-  - id: my_preset
-    label: "My Preset"
-    prompt: "Rewrite the following as ..."
+Presets can be managed via the API:
+- `GET /api/presets` — list presets
+- `POST /api/presets` — create a preset
+- `PUT /api/presets/{slug}` — update a preset
+- `DELETE /api/presets/{slug}` — delete a preset
+
+Each preset can optionally override the LLM model. The resolution order is: preset model → user default model → global `OPENROUTER_MODEL`.
+
+---
+
+## Settings
+
+- `GET /api/settings` — get user settings and available models
+- `PUT /api/settings` — update default model
+- `POST /api/settings/change-password` — change password
+
+---
+
+## Authentication
+
+The app requires login. All API routes are protected — unauthenticated requests receive a `401`.
+
+- On first visit, a login overlay covers the UI
+- After a successful login, a JWT is stored in `localStorage` (24-hour expiry)
+- Clicking *Sign out* clears the token and returns to the login screen
+
+**Managing users:**
+```bash
+# Local
+cd backend && python add_user.py <username> <password>
+
+# Docker (container must be running)
+docker compose exec app python add_user.py <username> <password>
 ```
 
-To change the LLM model, update `OPENROUTER_MODEL` in `.env` to any model available on [openrouter.ai](https://openrouter.ai/models).
+Registration is admin-only — there is no self-signup.
+
+---
+
+## Migrating from legacy format
+
+If upgrading from the file-based version (users.json + presets.yaml):
+
+```bash
+cd backend && python migrate.py
+```
+
+This is idempotent — safe to run multiple times.
 
 ---
 
 ## Production deployment
 
-The prod compose stack runs the FastAPI app behind an nginx reverse proxy.
-Update `nginx/default.conf` with your domain, then add TLS:
+The Docker image builds the Vue frontend and serves it via FastAPI. Place a reverse proxy (Caddy, nginx, etc.) in front for TLS:
 
-```bash
-sudo certbot --nginx -d your.domain.com
+```
+your.domain.com → localhost:8000
 ```
 
-Mount the generated certs into the nginx container (see the commented block in `nginx/default.conf`).
+Data is stored in a Docker named volume (`blablab_data`) mounted at `/app/backend/data`.
