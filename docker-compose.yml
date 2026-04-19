@@ -7,20 +7,5 @@ services:
     volumes:
       - ./backend/users.json:/app/backend/users.json
     restart: unless-stopped
-    # Not exposed directly — nginx proxies to it
-    expose:
-      - "8000"
-
-  nginx:
-    image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      # Uncomment to use Certbot-managed TLS certs:
-      # - /etc/letsencrypt:/etc/letsencrypt:ro
-      # - /var/www/certbot:/var/www/certbot:ro
-    depends_on:
-      - app
-    restart: unless-stopped
+      - "${APP_PORT:-8000}:8000"

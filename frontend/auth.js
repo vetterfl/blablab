@@ -9,6 +9,7 @@
   // ── Token helpers ───────────────────────────────────────────────────────────
 
   function getToken() { return localStorage.getItem(TOKEN_KEY); }
+  window.getToken = getToken;
   function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
   function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
@@ -67,6 +68,7 @@
       setToken(data.access_token);
       form.reset();
       hideOverlay();
+      window.dispatchEvent(new CustomEvent('blablab:login'));
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.hidden = false;
