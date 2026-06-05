@@ -24,8 +24,7 @@ export const usePresetsStore = defineStore('presets', () => {
   }
 
   async function refine(presetId, transcript) {
-    const data = await apiRefine(transcript, presetId)
-    return data.refined
+    return await apiRefine(transcript, presetId)
   }
 
   async function deletePreset(slug) {

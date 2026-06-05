@@ -76,6 +76,7 @@
 <script setup>
 import { ref } from 'vue'
 import { usePresetsStore } from '../stores/presets.js'
+import { useStatsStore } from '../stores/stats.js'
 import { apiRefineAdhoc } from '../api/client.js'
 import PresetEditor from './PresetEditor.vue'
 
@@ -87,6 +88,7 @@ const props = defineProps({
 const emit = defineEmits(['refined'])
 
 const presets = usePresetsStore()
+const stats = useStatsStore()
 const activePresetId = ref(null)
 const refining = ref(false)
 const statusMsg = ref('')
@@ -111,8 +113,9 @@ async function handleRefine(preset) {
   setStatus('Refining…', 'active')
 
   try {
-    const text = await presets.refine(id, transcript)
-    emit('refined', { text, last: { kind: 'preset', id } })
+    const data = await presets.refine(id, transcript)
+    stats.recordRefine({ refined: data.refined, costUsd: data.cost_usd })
+    emit('refined', { text: data.refined, last: { kind: 'preset', id } })
     setStatus('Done.', 'success')
   } catch (err) {
     setStatus(`Refinement failed: ${err.message}`, 'error')
@@ -132,6 +135,7 @@ async function handleAdhoc() {
 
   try {
     const data = await apiRefineAdhoc(transcript, prompt)
+    stats.recordRefine({ refined: data.refined, costUsd: data.cost_usd })
     emit('refined', { text: data.refined, last: { kind: 'adhoc', prompt } })
     setStatus('Done.', 'success')
   } catch (err) {

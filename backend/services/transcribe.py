@@ -33,7 +33,7 @@ async def transcribe_audio(
     filename: str,
     content_type: str = "",
     model: str | None = None,
-) -> str:
+) -> dict:
     audio_format = detect_format(content_type, filename)
     audio_b64 = base64.b64encode(audio_bytes).decode("ascii")
     resolved_model = model or settings.transcription_model
@@ -64,4 +64,5 @@ async def transcribe_audio(
     text = data.get("text")
     if not text:
         raise RuntimeError(f"OpenRouter transcription returned no text: {data}")
-    return text.strip()
+    usage = data.get("usage") or {}
+    return {"text": text.strip(), "cost_usd": usage.get("cost")}

@@ -41,10 +41,12 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { apiTranscribe } from '../api/client.js'
 import { useSettingsStore } from '../stores/settings.js'
+import { useStatsStore } from '../stores/stats.js'
 
 const emit = defineEmits(['transcribed'])
 
 const settingsStore = useSettingsStore()
+const statsStore = useStatsStore()
 const maxRecordSeconds = computed(() => settingsStore.limits?.max_recording_seconds ?? 90)
 
 let mediaRecorder = null
@@ -101,7 +103,8 @@ async function startRecording() {
     const blob = new Blob(audioChunks, {
       type: mediaRecorder.mimeType || 'audio/webm',
     })
-    sendAudio(blob)
+    const durationSec = maxRecordSeconds.value - secondsLeft.value
+    sendAudio(blob, durationSec)
   })
 
   mediaRecorder.start(250)
@@ -145,9 +148,15 @@ function stopRecording() {
   setStatus('Transcribing…', 'active')
 }
 
-async function sendAudio(blob) {
+async function sendAudio(blob, durationSec) {
   try {
     const data = await apiTranscribe(blob)
+    statsStore.recordTranscribe({
+      durationSec,
+      audioBytes: blob.size,
+      transcript: data.transcript,
+      costUsd: data.cost_usd,
+    })
     emit('transcribed', data.transcript)
     setStatus('Transcription complete. Edit if needed, then pick a preset.', 'success')
   } catch (err) {

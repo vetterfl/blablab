@@ -26,6 +26,8 @@
       <p>BlabLab &mdash; powered by Whisper &amp; OpenRouter</p>
     </footer>
 
+    <RunStats />
+
     <!-- Settings modal -->
     <Transition name="modal">
       <div v-if="showSettings" class="modal-overlay" @mousedown.self="showSettings = false">
@@ -60,6 +62,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from './stores/auth.js'
 import { usePresetsStore } from './stores/presets.js'
+import { useStatsStore } from './stores/stats.js'
 import { apiRefineAdhoc } from './api/client.js'
 import AppHeader from './components/AppHeader.vue'
 import LoginOverlay from './components/LoginOverlay.vue'
@@ -67,11 +70,13 @@ import RecordSection from './components/RecordSection.vue'
 import TranscriptSection from './components/TranscriptSection.vue'
 import RefinedSection from './components/RefinedSection.vue'
 import RefinePanel from './components/RefinePanel.vue'
+import RunStats from './components/RunStats.vue'
 import SettingsPage from './components/SettingsPage.vue'
 import UsersPage from './components/UsersPage.vue'
 
 const auth = useAuthStore()
 const presets = usePresetsStore()
+const stats = useStatsStore()
 const transcript = ref('')
 const refined = ref('')
 const showSettings = ref(false)
@@ -94,9 +99,12 @@ async function onRerun() {
   rerunning.value = true
   try {
     if (lastRefinement.value.kind === 'preset') {
-      refined.value = await presets.refine(lastRefinement.value.id, transcript.value)
+      const data = await presets.refine(lastRefinement.value.id, transcript.value)
+      stats.recordRefine({ refined: data.refined, costUsd: data.cost_usd })
+      refined.value = data.refined
     } else {
       const data = await apiRefineAdhoc(transcript.value, lastRefinement.value.prompt)
+      stats.recordRefine({ refined: data.refined, costUsd: data.cost_usd })
       refined.value = data.refined
     }
   } catch {

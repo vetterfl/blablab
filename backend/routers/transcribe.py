@@ -50,7 +50,7 @@ async def transcribe_endpoint(
         raise HTTPException(status_code=400, detail="Audio file is empty")
 
     try:
-        transcript = await transcribe_audio(
+        result = await transcribe_audio(
             audio_bytes,
             audio.filename or "audio.webm",
             content_type=content_type,
@@ -59,4 +59,8 @@ async def transcribe_endpoint(
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    return {"transcript": transcript}
+    return {
+        "transcript": result["text"],
+        "cost_usd": result.get("cost_usd"),
+        "audio_bytes": len(audio_bytes),
+    }

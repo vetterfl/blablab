@@ -61,11 +61,11 @@ async def refine_endpoint(
         user_content = f"Context:\n{body.context}\n\n---\n\n{user_content}"
 
     try:
-        refined = await refine_text(user_content, preset.prompt, model)
+        result = await refine_text(user_content, preset.prompt, model)
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    return {"refined": refined}
+    return {"refined": result["content"], "cost_usd": result.get("cost_usd")}
 
 
 @router.post("/refine/adhoc")
@@ -84,8 +84,8 @@ async def refine_adhoc_endpoint(
     model = body.model or current_user.default_model or settings.openrouter_model
 
     try:
-        refined = await refine_text(body.transcript, body.prompt, model)
+        result = await refine_text(body.transcript, body.prompt, model)
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    return {"refined": refined}
+    return {"refined": result["content"], "cost_usd": result.get("cost_usd")}

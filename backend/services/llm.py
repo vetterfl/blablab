@@ -4,7 +4,9 @@ from config import settings
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
-async def refine_text(transcript: str, system_prompt: str, model: str | None = None) -> str:
+async def refine_text(
+    transcript: str, system_prompt: str, model: str | None = None
+) -> dict:
     headers = {
         "Authorization": f"Bearer {settings.openrouter_api_key}",
         "HTTP-Referer": "http://localhost",
@@ -19,6 +21,7 @@ async def refine_text(transcript: str, system_prompt: str, model: str | None = N
         ],
         "temperature": 0.4,
         "max_tokens": 1024,
+        "usage": {"include": True},
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -29,4 +32,8 @@ async def refine_text(transcript: str, system_prompt: str, model: str | None = N
             f"OpenRouter API error {response.status_code}: {response.text}"
         )
 
-    return response.json()["choices"][0]["message"]["content"].strip()
+    data = response.json()
+    content = data["choices"][0]["message"]["content"].strip()
+    usage = data.get("usage") or {}
+    cost_usd = usage.get("cost")
+    return {"content": content, "cost_usd": cost_usd}
