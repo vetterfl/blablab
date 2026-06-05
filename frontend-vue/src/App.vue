@@ -11,8 +11,8 @@
 
     <div class="layout-body">
       <div class="col-left">
-        <RecordSection @transcribed="onTranscribed" />
-        <TranscriptSection v-model="transcript" />
+        <RecordSection @transcribed="onTranscribed" @new="onNew" />
+        <TranscriptSection ref="transcriptRef" v-model="transcript" />
         <RefinedSection :text="refined" :rerunning="rerunning" @rerun="onRerun" />
       </div>
       <RefinePanel
@@ -83,10 +83,22 @@ const showSettings = ref(false)
 const showUsers = ref(false)
 const lastRefinement = ref(null)
 const rerunning = ref(false)
+const transcriptRef = ref(null)
 
 function onTranscribed(text) {
-  transcript.value = text
+  if (transcript.value.length === 0) {
+    transcript.value = text
+  } else {
+    transcriptRef.value?.insertAtCursor(text)
+  }
   refined.value = ''
+}
+
+function onNew() {
+  transcript.value = ''
+  refined.value = ''
+  lastRefinement.value = null
+  stats.reset()
 }
 
 function onRefined({ text, last }) {

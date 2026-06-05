@@ -7,7 +7,15 @@
           <h2 class="card-title">Speak into the mic</h2>
           <p class="card-subtitle">Click record, speak naturally, stop when done.</p>
         </div>
-        <p :class="['status-text', statusType]">{{ statusMsg }}</p>
+        <div class="record-header-right">
+          <button
+            class="btn-new"
+            :disabled="isRecording || isTranscribing"
+            title="Start a new transcript (clears current text)"
+            @click="emit('new')"
+          >+ New</button>
+          <p :class="['status-text', statusType]">{{ statusMsg }}</p>
+        </div>
       </div>
       <div class="record-controls">
         <div class="record-btn-wrap">
@@ -43,7 +51,7 @@ import { apiTranscribe } from '../api/client.js'
 import { useSettingsStore } from '../stores/settings.js'
 import { useStatsStore } from '../stores/stats.js'
 
-const emit = defineEmits(['transcribed'])
+const emit = defineEmits(['transcribed', 'new'])
 
 const settingsStore = useSettingsStore()
 const statsStore = useStatsStore()
@@ -173,3 +181,37 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.record-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-new {
+  appearance: none;
+  background: var(--chip-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.btn-new:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-new:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+</style>
