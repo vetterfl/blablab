@@ -13,10 +13,10 @@ Self-hosted voice dictation app. Record speech in the browser, get an AI transcr
    cp .env.example .env
    ```
    ```env
-   OPENAI_API_KEY=sk-...
    OPENROUTER_API_KEY=sk-or-...
-   OPENROUTER_MODEL=openai/gpt-4o-mini   # any OpenRouter model slug
-   SECRET_KEY=                            # generate with: python -c "import secrets; print(secrets.token_hex(32))"
+   OPENROUTER_MODEL=openai/gpt-4o-mini             # refinement LLM
+   TRANSCRIPTION_MODEL=openai/whisper-large-v3     # ASR model for STT
+   SECRET_KEY=                                      # generate with: python -c "import secrets; print(secrets.token_hex(32))"
    ```
 
 2. **Add at least one user:**

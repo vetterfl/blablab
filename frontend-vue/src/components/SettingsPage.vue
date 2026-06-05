@@ -27,6 +27,55 @@
 
       <div class="settings-divider"></div>
 
+      <!-- Transcription model (global, admin-only edit) -->
+      <section class="settings-section">
+        <h3 class="settings-section-title">Transcription model</h3>
+        <p class="settings-section-desc">
+          Audio-input model used for speech-to-text. Global setting{{ auth.isAdmin ? '' : ' — only admins can change this.' }}
+        </p>
+        <div class="settings-row">
+          <select
+            v-model="selectedTranscriptionModel"
+            class="auth-input settings-select"
+            :disabled="!auth.isAdmin || transcriptionSaving"
+            @change="handleTranscriptionChange"
+          >
+            <option v-if="!settings.availableTranscriptionModels.length" value="">Loading models…</option>
+            <option
+              v-for="m in settings.availableTranscriptionModels"
+              :key="m"
+              :value="m"
+            >{{ m }}</option>
+          </select>
+          <span v-if="transcriptionStatus" :class="['settings-feedback', transcriptionStatusType]">{{ transcriptionStatus }}</span>
+        </div>
+      </section>
+
+      <div v-if="auth.isAdmin" class="settings-divider"></div>
+
+      <!-- Admin: manage OpenRouter model lists -->
+      <ModelListEditor
+        v-if="auth.isAdmin"
+        kind="refine"
+        title="Refine model list"
+        description="Models available in the refine picker. Slugs are validated against the live OpenRouter catalog."
+        placeholder="e.g. openai/gpt-4o-mini"
+        @changed="settings.fetchSettings()"
+      />
+
+      <div v-if="auth.isAdmin" class="settings-divider"></div>
+
+      <ModelListEditor
+        v-if="auth.isAdmin"
+        kind="transcription"
+        title="Transcription model list"
+        description="Audio-input models available for speech-to-text. Only models with audio input modality can be added."
+        placeholder="e.g. google/gemini-flash-latest"
+        @changed="settings.fetchSettings()"
+      />
+
+      <div class="settings-divider"></div>
+
       <!-- Change password -->
       <section class="settings-section">
         <h3 class="settings-section-title">Change password</h3>
@@ -77,10 +126,13 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/settings.js'
+import { useAuthStore } from '../stores/auth.js'
+import ModelListEditor from './ModelListEditor.vue'
 
 const settings = useSettingsStore()
+const auth = useAuthStore()
 
-// Model
+// Refine model
 const selectedModel = ref(settings.defaultModel ?? '')
 const modelSaving = ref(false)
 const modelStatus = ref('')
@@ -90,6 +142,33 @@ watch(
   () => settings.defaultModel,
   (val) => { if (val) selectedModel.value = val }
 )
+
+// Transcription model
+const selectedTranscriptionModel = ref(settings.transcriptionModel ?? '')
+const transcriptionSaving = ref(false)
+const transcriptionStatus = ref('')
+const transcriptionStatusType = ref('')
+
+watch(
+  () => settings.transcriptionModel,
+  (val) => { if (val) selectedTranscriptionModel.value = val }
+)
+
+async function handleTranscriptionChange() {
+  transcriptionSaving.value = true
+  transcriptionStatus.value = ''
+  try {
+    await settings.updateTranscriptionModel(selectedTranscriptionModel.value)
+    transcriptionStatus.value = 'Saved'
+    transcriptionStatusType.value = 'success'
+    setTimeout(() => { transcriptionStatus.value = '' }, 2000)
+  } catch (err) {
+    transcriptionStatus.value = err.message
+    transcriptionStatusType.value = 'error'
+  } finally {
+    transcriptionSaving.value = false
+  }
+}
 
 async function handleModelChange() {
   modelSaving.value = true

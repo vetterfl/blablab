@@ -4,9 +4,9 @@ import yaml
 
 
 class Settings(BaseSettings):
-    openai_api_key: str
     openrouter_api_key: str
     openrouter_model: str = "openai/gpt-4o-mini"
+    transcription_model: str = "openai/whisper-large-v3"
     host: str = "127.0.0.1"
     port: int = 8000
     secret_key: str
@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = Path(__file__).parent.parent / ".env"
+        extra = "ignore"
 
 
 settings = Settings()
@@ -30,7 +31,17 @@ def load_models() -> list[str]:
     return data["models"]
 
 
+def load_transcription_models() -> list[str]:
+    models_path = Path(__file__).parent / "transcription_models.yaml"
+    if not models_path.exists():
+        return ["google/gemini-flash-latest"]
+    with open(models_path) as f:
+        data = yaml.safe_load(f)
+    return data["models"]
+
+
 AVAILABLE_MODELS = load_models()
+AVAILABLE_TRANSCRIPTION_MODELS = load_transcription_models()
 
 
 def load_presets() -> list[dict]:

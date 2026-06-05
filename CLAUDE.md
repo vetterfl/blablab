@@ -1,6 +1,6 @@
 # BlabLab
 
-Self-hosted voice dictation app: record → transcribe (Whisper) → refine (OpenRouter LLM).
+Self-hosted voice dictation app: record → transcribe (OpenRouter audio model) → refine (OpenRouter LLM).
 
 ## Commands
 
@@ -45,7 +45,7 @@ backend/           FastAPI app (Python 3.11)
     presets.py     CRUD /api/presets
     settings.py    GET/PUT /api/settings, POST /api/settings/change-password
   services/
-    whisper.py     OpenAI Whisper transcription
+    transcribe.py  OpenRouter /v1/audio/transcriptions (Whisper-style multipart) for STT
     llm.py         OpenRouter LLM refinement
     users.py       User CRUD + default preset seeding
     presets.py     Preset CRUD
@@ -63,11 +63,13 @@ frontend-dist/     Vite build output (gitignored, built in Docker)
 ## Environment
 
 Required in `.env` (copy from `.env.example`):
-- `OPENAI_API_KEY`
 - `OPENROUTER_API_KEY`
 - `SECRET_KEY` — generate with `python -c "import secrets; print(secrets.token_hex(32))"`
-- `OPENROUTER_MODEL` (optional, default: `openai/gpt-4o-mini`)
+- `OPENROUTER_MODEL` (optional, default: `openai/gpt-4o-mini`) — refinement LLM
+- `TRANSCRIPTION_MODEL` (optional, default: `openai/whisper-large-v3`) — ASR model via OpenRouter `/v1/audio/transcriptions`
 - `DATABASE_URL` (optional, default: `sqlite:///./blablab.db`)
+
+Refinement model list: `backend/models.yaml`. Transcription model list: `backend/transcription_models.yaml`.
 
 ## Gotchas
 

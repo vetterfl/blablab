@@ -14,6 +14,7 @@ from routers import auth as auth_router
 from routers import presets as presets_router
 from routers import settings as settings_router
 from routers import users as users_router
+from routers import admin_models as admin_models_router
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -25,6 +26,34 @@ with engine.connect() as conn:
     if "is_admin" not in cols:
         conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"))
         conn.commit()
+
+# Migrate legacy chat-completion STT entries → ASR-only model list, then merge YAML.
+from database import SessionLocal
+from models import AvailableModel, AppSettings
+from services.available_models import seed_from_yaml
+
+LEGACY_STT_CHAT_SLUGS = {
+    "google/gemini-flash-latest",
+    "google/gemini-pro-latest",
+    "google/gemini-2.5-flash",
+    "google/gemini-2.5-flash-lite",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "xiaomi/mimo-v2.5",
+}
+
+with SessionLocal() as _db:
+    _db.query(AvailableModel).filter(
+        AvailableModel.kind == "transcription",
+        AvailableModel.slug.in_(LEGACY_STT_CHAT_SLUGS),
+    ).delete(synchronize_session=False)
+    _db.commit()
+
+    row = _db.query(AppSettings).filter(AppSettings.id == 1).first()
+    if row is not None and row.transcription_model in LEGACY_STT_CHAT_SLUGS:
+        row.transcription_model = "openai/whisper-large-v3"
+        _db.commit()
+
+    seed_from_yaml(_db)
 
 app = FastAPI(title="BlabLab")
 
@@ -57,6 +86,7 @@ app.include_router(refine.router, prefix="/api")
 app.include_router(presets_router.router, prefix="/api")
 app.include_router(settings_router.router, prefix="/api")
 app.include_router(users_router.router, prefix="/api")
+app.include_router(admin_models_router.router, prefix="/api")
 
 
 # Serve frontend — registered last so API routes take priority

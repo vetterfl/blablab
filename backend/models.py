@@ -25,6 +25,26 @@ class User(Base):
     presets = relationship("Preset", back_populates="user", cascade="all, delete-orphan")
 
 
+class AppSettings(Base):
+    __tablename__ = "app_settings"
+
+    id = Column(Integer, primary_key=True)
+    transcription_model = Column(String, nullable=False)
+
+
+class AvailableModel(Base):
+    __tablename__ = "available_models"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slug = Column(String, nullable=False)
+    kind = Column(String, nullable=False)  # 'refine' or 'transcription'
+    position = Column(Integer, default=0)
+
+    __table_args__ = (
+        UniqueConstraint("slug", "kind", name="uq_model_kind"),
+    )
+
+
 class Preset(Base):
     __tablename__ = "presets"
 

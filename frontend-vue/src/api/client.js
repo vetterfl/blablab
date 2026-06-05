@@ -115,6 +115,58 @@ export async function apiUpdateSettings(settings) {
   return data
 }
 
+export async function apiGetTranscriptionSettings() {
+  const res = await authFetch('/api/settings/transcription')
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiUpdateTranscriptionSettings(model) {
+  const res = await authFetch('/api/settings/transcription', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transcription_model: model }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiListAvailableModels(kind) {
+  const res = await authFetch(`/api/admin/models?kind=${encodeURIComponent(kind)}`)
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiAddAvailableModel(slug, kind) {
+  const res = await authFetch('/api/admin/models', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slug, kind }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiDeleteAvailableModel(modelId) {
+  const res = await authFetch(`/api/admin/models/${modelId}`, { method: 'DELETE' })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail || `HTTP ${res.status}`)
+  }
+}
+
+export async function apiGetOpenRouterCatalog(kind = null) {
+  const qs = kind ? `?kind=${encodeURIComponent(kind)}` : ''
+  const res = await authFetch(`/api/admin/models/catalog${qs}`)
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data.slugs ?? []
+}
+
 export async function apiListUsers() {
   const res = await authFetch('/api/users')
   const data = await res.json()

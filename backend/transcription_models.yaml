@@ -1,0 +1,4 @@
+models:
+  - openai/whisper-large-v3
+  - openai/whisper-1
+  - qwen/qwen3-asr-flash-2026-02-10
