@@ -29,36 +29,53 @@
         </div>
       </div>
       <textarea
+        ref="outputRef"
         :value="text"
-        @input="$emit('update:text', $event.target.value)"
+        @input="onInput"
         class="fancy-textarea fancy-textarea--output"
         readonly
-        style="min-height:200px;resize:vertical"
+        style="min-height:200px;resize:none;overflow:hidden"
       ></textarea>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 
-defineProps({
+const props = defineProps({
   text: { type: String, default: '' },
   rerunning: { type: Boolean, default: false },
 })
-defineEmits(['update:text', 'rerun'])
+const emit = defineEmits(['update:text', 'rerun'])
 
 const copyLabel = ref('Copy')
+const outputRef = ref(null)
+
+function autosize() {
+  const el = outputRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
+function onInput(e) {
+  emit('update:text', e.target.value)
+  nextTick(autosize)
+}
+
+watch(() => props.text, () => nextTick(autosize))
+onMounted(() => nextTick(autosize))
 
 async function copyText() {
-  const textarea = document.querySelector('.fancy-textarea--output')
-  if (!textarea || !textarea.value) return
+  const el = outputRef.value
+  if (!el || !el.value) return
   try {
-    await navigator.clipboard.writeText(textarea.value)
+    await navigator.clipboard.writeText(el.value)
     copyLabel.value = '✓ Copied!'
     setTimeout(() => { copyLabel.value = 'Copy' }, 1500)
   } catch {
-    textarea.select()
+    el.select()
     document.execCommand('copy')
   }
 }
