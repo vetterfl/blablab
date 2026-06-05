@@ -20,7 +20,6 @@ ALLOWED_AUDIO_PREFIXES = (
     "application/octet-stream",
 )
 
-MAX_AUDIO_BYTES = 25 * 1024 * 1024  # 25 MB
 
 
 @router.post("/transcribe")
@@ -39,16 +38,16 @@ async def transcribe_endpoint(
         )
 
     audio_bytes = await audio.read()
+    app_settings = get_app_settings(db)
 
-    if len(audio_bytes) > MAX_AUDIO_BYTES:
+    if len(audio_bytes) > app_settings.max_audio_bytes:
+        mb = app_settings.max_audio_bytes // (1024 * 1024)
         raise HTTPException(
-            status_code=413, detail="Audio file too large (max 25 MB)"
+            status_code=413, detail=f"Audio file too large (max {mb} MB)"
         )
 
     if len(audio_bytes) == 0:
         raise HTTPException(status_code=400, detail="Audio file is empty")
-
-    app_settings = get_app_settings(db)
 
     try:
         transcript = await transcribe_audio(

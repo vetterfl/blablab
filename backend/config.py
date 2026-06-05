@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     openrouter_api_key: str
     openrouter_model: str = "openai/gpt-4o-mini"
     transcription_model: str = "openai/whisper-large-v3"
+    max_audio_bytes: int = 25 * 1024 * 1024
+    max_recording_seconds: int = 90
+    max_transcript_chars: int = 2000
     host: str = "127.0.0.1"
     port: int = 8000
     secret_key: str

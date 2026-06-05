@@ -53,6 +53,55 @@
 
       <div v-if="auth.isAdmin" class="settings-divider"></div>
 
+      <!-- Admin: limits -->
+      <section v-if="auth.isAdmin" class="settings-section">
+        <h3 class="settings-section-title">Limits</h3>
+        <p class="settings-section-desc">
+          Max audio upload size, recording duration, and refine transcript length. Applied globally.
+        </p>
+
+        <label class="auth-label">Max audio upload size (MB)</label>
+        <input
+          v-model.number="limitsForm.maxAudioMb"
+          type="number"
+          min="1"
+          max="500"
+          class="auth-input"
+        />
+
+        <label class="auth-label">Max recording duration (seconds)</label>
+        <input
+          v-model.number="limitsForm.maxRecordingSeconds"
+          type="number"
+          min="5"
+          max="3600"
+          class="auth-input"
+        />
+
+        <label class="auth-label">Max transcript length (characters)</label>
+        <input
+          v-model.number="limitsForm.maxTranscriptChars"
+          type="number"
+          min="100"
+          max="200000"
+          class="auth-input"
+        />
+
+        <div v-if="limitsError" class="auth-error settings-feedback-block">{{ limitsError }}</div>
+        <div v-if="limitsSuccess" class="settings-success-block">{{ limitsSuccess }}</div>
+
+        <button
+          type="button"
+          class="btn btn-copy settings-submit-btn"
+          :disabled="limitsSaving"
+          @click="handleSaveLimits"
+        >
+          {{ limitsSaving ? 'Saving…' : 'Save limits' }}
+        </button>
+      </section>
+
+      <div v-if="auth.isAdmin" class="settings-divider"></div>
+
       <!-- Admin: manage OpenRouter model lists -->
       <ModelListEditor
         v-if="auth.isAdmin"
@@ -183,6 +232,48 @@ async function handleModelChange() {
     modelStatusType.value = 'error'
   } finally {
     modelSaving.value = false
+  }
+}
+
+// Limits (admin)
+const limitsForm = ref({
+  maxAudioMb: Math.round((settings.limits?.max_audio_bytes ?? 25 * 1024 * 1024) / (1024 * 1024)),
+  maxRecordingSeconds: settings.limits?.max_recording_seconds ?? 90,
+  maxTranscriptChars: settings.limits?.max_transcript_chars ?? 2000,
+})
+const limitsSaving = ref(false)
+const limitsError = ref('')
+const limitsSuccess = ref('')
+
+watch(
+  () => settings.limits,
+  (val) => {
+    if (!val) return
+    limitsForm.value = {
+      maxAudioMb: Math.round((val.max_audio_bytes ?? 25 * 1024 * 1024) / (1024 * 1024)),
+      maxRecordingSeconds: val.max_recording_seconds ?? 90,
+      maxTranscriptChars: val.max_transcript_chars ?? 2000,
+    }
+  },
+  { deep: true }
+)
+
+async function handleSaveLimits() {
+  limitsError.value = ''
+  limitsSuccess.value = ''
+  limitsSaving.value = true
+  try {
+    await settings.updateLimits({
+      max_audio_bytes: Math.round(limitsForm.value.maxAudioMb * 1024 * 1024),
+      max_recording_seconds: limitsForm.value.maxRecordingSeconds,
+      max_transcript_chars: limitsForm.value.maxTranscriptChars,
+    })
+    limitsSuccess.value = 'Limits saved.'
+    setTimeout(() => { limitsSuccess.value = '' }, 2000)
+  } catch (err) {
+    limitsError.value = err.message
+  } finally {
+    limitsSaving.value = false
   }
 }
 

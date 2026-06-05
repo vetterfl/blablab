@@ -27,6 +27,16 @@ with engine.connect() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"))
         conn.commit()
 
+    cols = [row[1] for row in conn.execute(text("PRAGMA table_info(app_settings)"))]
+    if cols:
+        if "max_audio_bytes" not in cols:
+            conn.execute(text(f"ALTER TABLE app_settings ADD COLUMN max_audio_bytes INTEGER NOT NULL DEFAULT {25 * 1024 * 1024}"))
+        if "max_recording_seconds" not in cols:
+            conn.execute(text("ALTER TABLE app_settings ADD COLUMN max_recording_seconds INTEGER NOT NULL DEFAULT 90"))
+        if "max_transcript_chars" not in cols:
+            conn.execute(text("ALTER TABLE app_settings ADD COLUMN max_transcript_chars INTEGER NOT NULL DEFAULT 2000"))
+        conn.commit()
+
 # Migrate legacy chat-completion STT entries → ASR-only model list, then merge YAML.
 from database import SessionLocal
 from models import AvailableModel, AppSettings

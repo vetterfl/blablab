@@ -79,4 +79,4 @@ Refinement model list: `backend/models.yaml`. Transcription model list: `backend
 - `limiter.py` exists as a separate module purely to avoid a circular import between `main.py` and `routers/auth.py`.
 - Vue frontend uses Pinia store watchers to auto-fetch presets on login — no manual reload needed.
 - `main.py` serves `frontend-dist/` if it exists, otherwise falls back to `frontend/`.
-- Max transcript length for `/api/refine` is 2000 characters. Max recording duration is 90 seconds (frontend enforced).
+- Audio upload size, recording duration, and refine transcript length are editable per-instance under Settings → Limits (admin-only). Defaults: 25 MB, 90 s, 2000 chars. Env overrides: `MAX_AUDIO_BYTES`, `MAX_RECORDING_SECONDS`, `MAX_TRANSCRIPT_CHARS` (only seed initial DB row).

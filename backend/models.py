@@ -30,6 +30,9 @@ class AppSettings(Base):
 
     id = Column(Integer, primary_key=True)
     transcription_model = Column(String, nullable=False)
+    max_audio_bytes = Column(Integer, nullable=False, default=25 * 1024 * 1024)
+    max_recording_seconds = Column(Integer, nullable=False, default=90)
+    max_transcript_chars = Column(Integer, nullable=False, default=2000)
 
 
 class AvailableModel(Base):

@@ -6,7 +6,7 @@ from auth import get_current_user, require_admin, verify_password, hash_password
 from database import get_db
 from limiter import limiter
 from models import User
-from services.app_settings import get_app_settings, set_transcription_model
+from services.app_settings import get_app_settings, set_limits, set_transcription_model
 from services.available_models import KIND_REFINE, KIND_TRANSCRIPTION, list_slugs
 from services.users import change_password, update_default_model
 
@@ -87,6 +87,50 @@ async def update_transcription_settings(
     return TranscriptionOut(
         transcription_model=row.transcription_model,
         available_models=list_slugs(db, KIND_TRANSCRIPTION),
+    )
+
+
+class LimitsOut(BaseModel):
+    max_audio_bytes: int
+    max_recording_seconds: int
+    max_transcript_chars: int
+
+
+class UpdateLimits(BaseModel):
+    max_audio_bytes: int = Field(..., ge=1024, le=500 * 1024 * 1024)
+    max_recording_seconds: int = Field(..., ge=5, le=3600)
+    max_transcript_chars: int = Field(..., ge=100, le=200_000)
+
+
+@router.get("/limits", response_model=LimitsOut)
+async def get_limits(
+    _: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    row = get_app_settings(db)
+    return LimitsOut(
+        max_audio_bytes=row.max_audio_bytes,
+        max_recording_seconds=row.max_recording_seconds,
+        max_transcript_chars=row.max_transcript_chars,
+    )
+
+
+@router.put("/limits", response_model=LimitsOut)
+async def update_limits(
+    body: UpdateLimits,
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    row = set_limits(
+        db,
+        max_audio_bytes=body.max_audio_bytes,
+        max_recording_seconds=body.max_recording_seconds,
+        max_transcript_chars=body.max_transcript_chars,
+    )
+    return LimitsOut(
+        max_audio_bytes=row.max_audio_bytes,
+        max_recording_seconds=row.max_recording_seconds,
+        max_transcript_chars=row.max_transcript_chars,
     )
 
 

@@ -7,24 +7,32 @@ from config import settings
 from database import get_db
 from limiter import limiter
 from models import User
+from services.app_settings import get_app_settings
 from services.llm import refine_text
 from services.presets import get_preset_by_slug
 
 router = APIRouter()
 
-MAX_TRANSCRIPT_CHARS = 2000
-
 
 class RefineRequest(BaseModel):
-    transcript: str = Field(..., min_length=1, max_length=MAX_TRANSCRIPT_CHARS)
+    transcript: str = Field(..., min_length=1)
     preset_id: str = Field(..., min_length=1, max_length=100)
     context: str = Field(default="", max_length=5000)
 
 
 class AdhocRefineRequest(BaseModel):
-    transcript: str = Field(..., min_length=1, max_length=MAX_TRANSCRIPT_CHARS)
+    transcript: str = Field(..., min_length=1)
     prompt: str = Field(..., min_length=1, max_length=2000)
     model: str | None = None
+
+
+def _check_transcript_length(db: Session, transcript: str) -> None:
+    limit = get_app_settings(db).max_transcript_chars
+    if len(transcript) > limit:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Transcript too long (max {limit} chars)",
+        )
 
 
 @router.post("/refine")
@@ -37,6 +45,8 @@ async def refine_endpoint(
 ):
     if not body.transcript.strip():
         raise HTTPException(status_code=400, detail="Transcript is empty")
+
+    _check_transcript_length(db, body.transcript)
 
     preset = get_preset_by_slug(db, current_user.id, body.preset_id)
     if preset is None:
@@ -64,9 +74,12 @@ async def refine_adhoc_endpoint(
     request: Request,
     body: AdhocRefineRequest,
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     if not body.transcript.strip():
         raise HTTPException(status_code=400, detail="Transcript is empty")
+
+    _check_transcript_length(db, body.transcript)
 
     model = body.model or current_user.default_model or settings.openrouter_model
 

@@ -40,10 +40,12 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 import { apiTranscribe } from '../api/client.js'
+import { useSettingsStore } from '../stores/settings.js'
 
 const emit = defineEmits(['transcribed'])
 
-const MAX_RECORD_SECONDS = 90
+const settingsStore = useSettingsStore()
+const maxRecordSeconds = computed(() => settingsStore.limits?.max_recording_seconds ?? 90)
 
 let mediaRecorder = null
 let audioChunks = []
@@ -106,7 +108,7 @@ async function startRecording() {
   isRecording.value = true
   isPaused.value = false
 
-  secondsLeft.value = MAX_RECORD_SECONDS
+  secondsLeft.value = maxRecordSeconds.value
   setStatus(`Recording… (${secondsLeft.value}s)`, 'active')
 
   recordingTimer = setInterval(() => {

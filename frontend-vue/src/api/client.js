@@ -159,6 +159,24 @@ export async function apiDeleteAvailableModel(modelId) {
   }
 }
 
+export async function apiGetLimits() {
+  const res = await authFetch('/api/settings/limits')
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
+export async function apiUpdateLimits(limits) {
+  const res = await authFetch('/api/settings/limits', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(limits),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`)
+  return data
+}
+
 export async function apiGetOpenRouterCatalog(kind = null) {
   const qs = kind ? `?kind=${encodeURIComponent(kind)}` : ''
   const res = await authFetch(`/api/admin/models/catalog${qs}`)

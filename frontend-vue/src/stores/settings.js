@@ -7,13 +7,22 @@ import {
   apiChangePassword,
   apiGetTranscriptionSettings,
   apiUpdateTranscriptionSettings,
+  apiGetLimits,
+  apiUpdateLimits,
 } from '../api/client.js'
+
+const DEFAULT_LIMITS = {
+  max_audio_bytes: 25 * 1024 * 1024,
+  max_recording_seconds: 90,
+  max_transcript_chars: 2000,
+}
 
 export const useSettingsStore = defineStore('settings', () => {
   const defaultModel = ref(null)
   const availableModels = ref([])
   const transcriptionModel = ref(null)
   const availableTranscriptionModels = ref([])
+  const limits = ref({ ...DEFAULT_LIMITS })
 
   async function fetchSettings() {
     try {
@@ -30,6 +39,16 @@ export const useSettingsStore = defineStore('settings', () => {
     } catch {
       // silently ignore
     }
+    try {
+      limits.value = await apiGetLimits()
+    } catch {
+      // fall back to defaults
+    }
+  }
+
+  async function updateLimits(newLimits) {
+    const data = await apiUpdateLimits(newLimits)
+    limits.value = data
   }
 
   async function updateDefaultModel(model) {
@@ -56,6 +75,7 @@ export const useSettingsStore = defineStore('settings', () => {
         availableModels.value = []
         transcriptionModel.value = null
         availableTranscriptionModels.value = []
+        limits.value = { ...DEFAULT_LIMITS }
       }
     },
     { immediate: true }
@@ -66,9 +86,11 @@ export const useSettingsStore = defineStore('settings', () => {
     availableModels,
     transcriptionModel,
     availableTranscriptionModels,
+    limits,
     fetchSettings,
     updateDefaultModel,
     updateTranscriptionModel,
+    updateLimits,
     changePassword,
   }
 })
